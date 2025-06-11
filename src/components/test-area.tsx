@@ -13,7 +13,6 @@ interface TestAreaProps {
   currentCount?: number
   maxCount?: number
   totalEvents?: number
-  progress?: number
   remainingTime?: number
   onClick?: () => void
   onMouseMove?: (e: React.MouseEvent) => void
@@ -112,7 +111,6 @@ export function TestArea({
   currentCount,
   maxCount,
   totalEvents,
-  progress,
   remainingTime,
   onClick,
   onMouseMove,

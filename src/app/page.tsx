@@ -8,22 +8,29 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
-
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
+
 import {
   Mouse,
   Keyboard,
   Zap,
   BarChart3,
   Timer,
-  TrendingUp,
-  Target,
-  Activity,
   MousePointer2
 } from 'lucide-react'
 
 import { DeviceChart, ReportRateChart } from '@/components/device-chart'
+import { TestArea } from '@/components/test-area'
+import { TestProgress } from '@/components/test-progress'
+import { PerformanceStats } from '@/components/performance-stats'
+import { Instructions } from '@/components/instructions'
+import { OverallAnalysis } from '@/components/overall-analysis'
+import {
+  calculateStats,
+  calculateAdvancedStats,
+  calculateMouseMoveReportRate
+} from '@/lib/stats-utils'
 
 interface TestResult {
   timestamp: number
@@ -36,13 +43,6 @@ interface MouseMoveEvent {
   timestamp: number
   x: number
   y: number
-}
-
-interface Stats {
-  avg: number
-  min: number
-  max: number
-  count: number
 }
 
 const MAX_TEST_COUNT = 20 // 统一测试次数
@@ -81,217 +81,14 @@ export default function Home() {
   const [keyboardReportRateTestProgress, setKeyboardReportRateTestProgress] =
     useState(0)
 
-  const testAreaRef = useRef<HTMLDivElement>(null)
   const mouseMoveTestAreaRef = useRef<HTMLDivElement>(null)
   const keyboardReportRateTestAreaRef = useRef<HTMLDivElement>(null)
 
-  // 计算统计数据
-  const calculateStats = (
-    results: TestResult[],
-    type?: 'mouse' | 'keyboard'
-  ): Stats => {
-    const filtered = results.filter((r) => !type || r.testType === type)
 
-    if (filtered.length === 0) {
-      return { avg: 0, min: 0, max: 0, count: 0 }
-    }
 
-    const times = filtered.map((r) => r.responseTime)
-    return {
-      avg: Math.round(times.reduce((a, b) => a + b, 0) / times.length * 100) / 100,
-      min: Math.min(...times),
-      max: Math.max(...times),
-      count: times.length
-    }
-  }
 
-  // 计算高级统计数据
-  const calculateAdvancedStats = (results: TestResult[]) => {
-    if (results.length === 0) {
-      return {
-        stability: 0,
-        consistency: 0,
-        performance: 0,
-        reliability: 0,
-        median: 0,
-        p95: 0,
-        p99: 0,
-        standardDeviation: 0,
-        coefficientOfVariation: 0,
-        jitterIndex: 0
-      }
-    }
 
-    const times = results.map((r) => r.responseTime).sort((a, b) => a - b)
-    const avg = times.reduce((a, b) => a + b, 0) / times.length
 
-    // 中位数
-    const median = times.length % 2 === 0 
-      ? (times[times.length / 2 - 1] + times[times.length / 2]) / 2
-      : times[Math.floor(times.length / 2)]
-
-    // 95分位数和99分位数
-    const p95Index = Math.ceil(times.length * 0.95) - 1
-    const p99Index = Math.ceil(times.length * 0.99) - 1
-    const p95 = times[Math.max(0, p95Index)]
-    const p99 = times[Math.max(0, p99Index)]
-
-    // 标准差
-    const variance = times.reduce((acc, time) => acc + Math.pow(time - avg, 2), 0) / times.length
-    const stdDev = Math.sqrt(variance)
-
-    // 变异系数
-    const coefficientOfVariation = avg > 0 ? (stdDev / avg) * 100 : 0
-
-    // 抖动指数（基于相邻测量值的差异）
-    let jitterSum = 0
-    for (let i = 1; i < results.length; i++) {
-      jitterSum += Math.abs(results[i].responseTime - results[i - 1].responseTime)
-    }
-    const jitterIndex = results.length > 1 ? jitterSum / (results.length - 1) : 0
-
-    // 稳定性：基于变异系数的倒数计算（变异系数越小越稳定）
-    const stability = Math.max(0, Math.min(100, 100 - coefficientOfVariation))
-
-    // 一致性：基于标准差与中位数的比值
-    const consistency = median > 0 ? Math.max(0, Math.min(100, 100 - (stdDev / median) * 100)) : 0
-
-    // 性能：基于延迟的倒数和分布计算
-    const performance = Math.max(0, Math.min(100, (30 / avg) * 100))
-
-    // 可靠性：基于测试样本数和数据质量
-    const sampleReliability = Math.min(100, (results.length / MAX_TEST_COUNT) * 100)
-    const distributionReliability = coefficientOfVariation < 20 ? 100 : Math.max(0, 100 - coefficientOfVariation)
-    const reliability = (sampleReliability + distributionReliability) / 2
-
-    return {
-      stability: Math.round(stability * 100) / 100,
-      consistency: Math.round(consistency * 100) / 100,
-      performance: Math.round(performance * 100) / 100,
-      reliability: Math.round(reliability * 100) / 100,
-      median: Math.round(median * 100) / 100,
-      p95: Math.round(p95 * 100) / 100,
-      p99: Math.round(p99 * 100) / 100,
-      standardDeviation: Math.round(stdDev * 100) / 100,
-      coefficientOfVariation: Math.round(coefficientOfVariation * 100) / 100,
-      jitterIndex: Math.round(jitterIndex * 100) / 100
-    }
-  }
-
-  // 新增：计算鼠标移动回报率统计数据
-  const calculateMouseMoveReportRate = (events: MouseMoveEvent[]) => {
-    if (events.length < 2) {
-      return {
-        averageInterval: 0,
-        reportRate: 0,
-        maxReportRate: 0,
-        minReportRate: 0,
-        jitter: 0,
-        stability: 0,
-        totalEvents: 0,
-        testDuration: 0,
-        effectiveReportRate: 0,
-        temporalPrecision: 0,
-        frequencyStability: 0,
-        intervalVariance: 0,
-        medianInterval: 0,
-        p95Interval: 0
-      }
-    }
-
-    // 计算时间间隔
-    const intervals = []
-    for (let i = 1; i < events.length; i++) {
-      const interval = events[i].timestamp - events[i - 1].timestamp
-      if (interval > 0 && interval < 100) { // 过滤异常间隔（>100ms可能是暂停）
-        intervals.push(interval)
-      }
-    }
-
-    if (intervals.length === 0) {
-      return {
-        averageInterval: 0,
-        reportRate: 0,
-        maxReportRate: 0,
-        minReportRate: 0,
-        jitter: 0,
-        stability: 0,
-        totalEvents: events.length,
-        testDuration: 0,
-        effectiveReportRate: 0,
-        temporalPrecision: 0,
-        frequencyStability: 0,
-        intervalVariance: 0,
-        medianInterval: 0,
-        p95Interval: 0
-      }
-    }
-
-    // 排序间隔用于计算分位数
-    const sortedIntervals = [...intervals].sort((a, b) => a - b)
-    
-    const averageInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length
-    const reportRate = averageInterval > 0 ? Math.round(1000 / averageInterval) : 0
-
-    // 中位数间隔
-    const medianInterval = sortedIntervals.length % 2 === 0
-      ? (sortedIntervals[sortedIntervals.length / 2 - 1] + sortedIntervals[sortedIntervals.length / 2]) / 2
-      : sortedIntervals[Math.floor(sortedIntervals.length / 2)]
-
-    // 95分位数间隔
-    const p95Index = Math.ceil(sortedIntervals.length * 0.95) - 1
-    const p95Interval = sortedIntervals[Math.max(0, p95Index)]
-
-    // 计算最大和最小回报率
-    const maxInterval = Math.max(...intervals)
-    const minInterval = Math.min(...intervals)
-    const maxReportRate = minInterval > 0 ? Math.round(1000 / minInterval) : 0
-    const minReportRate = maxInterval > 0 ? Math.round(1000 / maxInterval) : 0
-
-    // 有效回报率（基于中位数计算，更稳定）
-    const effectiveReportRate = medianInterval > 0 ? Math.round(1000 / medianInterval) : 0
-
-    // 计算抖动（间隔的标准差）
-    const intervalVariance = intervals.reduce(
-      (acc, interval) => acc + Math.pow(interval - averageInterval, 2),
-      0
-    ) / intervals.length
-    const jitter = Math.sqrt(intervalVariance)
-
-    // 时序精度（基于抖动的倒数）
-    const temporalPrecision = averageInterval > 0 
-      ? Math.max(0, Math.min(100, 100 - (jitter / averageInterval) * 100))
-      : 0
-
-    // 频率稳定性（基于变异系数）
-    const coefficientOfVariation = averageInterval > 0 ? (jitter / averageInterval) * 100 : 0
-    const frequencyStability = Math.max(0, Math.min(100, 100 - coefficientOfVariation))
-
-    // 计算稳定性（综合指标）
-    const stability = (temporalPrecision + frequencyStability) / 2
-
-    // 计算测试持续时间
-    const testDuration = events.length > 0
-      ? events[events.length - 1].timestamp - events[0].timestamp
-      : 0
-
-    return {
-      averageInterval: Math.round(averageInterval * 1000) / 1000,
-      reportRate,
-      maxReportRate,
-      minReportRate,
-      jitter: Math.round(jitter * 1000) / 1000,
-      stability: Math.round(stability * 100) / 100,
-      totalEvents: events.length,
-      testDuration: Math.round(testDuration),
-      effectiveReportRate,
-      temporalPrecision: Math.round(temporalPrecision * 100) / 100,
-      frequencyStability: Math.round(frequencyStability * 100) / 100,
-      intervalVariance: Math.round(intervalVariance * 1000) / 1000,
-      medianInterval: Math.round(medianInterval * 1000) / 1000,
-      p95Interval: Math.round(p95Interval * 1000) / 1000
-    }
-  }
 
   // 重新开始鼠标测试
   const handleMouseRestart = useCallback(async () => {
@@ -551,33 +348,15 @@ export default function Home() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* 测试区域 */}
-              <div
-                ref={testAreaRef}
-                className={`
-                    h-32 rounded-lg border-2 border-dashed flex items-center justify-center transition-all
-                    select-none user-select-none touch-manipulation
-                    ${
-                      waitingForInput && isMouseTesting
-                        ? 'border-green-400 bg-green-50/50 dark:bg-green-950/10 animate-pulse cursor-pointer'
-                        : !mouseTestReady && !isMouseTesting
-                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/20'
-                        : mouseTestReady &&
-                          !isMouseTesting &&
-                          !isKeyboardTesting &&
-                          !isMouseMoveTesting &&
-                          testResults.filter((r) => r.testType === 'mouse')
-                            .length === 0
-                        ? 'border-blue-400 bg-blue-50/50 dark:bg-blue-950/10 cursor-pointer hover:bg-blue-100/50 dark:hover:bg-blue-900/20'
-                        : mouseTestReady &&
-                          !isMouseTesting &&
-                          !isKeyboardTesting &&
-                          !isMouseMoveTesting &&
-                          testResults.filter((r) => r.testType === 'mouse')
-                            .length > 0
-                        ? 'border-green-400 bg-green-50/50 dark:bg-green-950/10'
-                        : 'border-border'
-                    }
-                  `}
+              <TestArea
+                testType="mouse"
+                isActive={isMouseTesting}
+                isReady={mouseTestReady}
+                isWaiting={waitingForInput}
+                hasResults={testResults.filter((r) => r.testType === 'mouse').length > 0}
+                isOtherTestRunning={isKeyboardTesting || isMouseMoveTesting || isKeyboardReportRateTesting}
+                currentCount={mouseTestCount}
+                maxCount={MAX_TEST_COUNT}
                 onClick={
                   isMouseTesting && waitingForInput
                     ? handleMouseClick
@@ -585,118 +364,23 @@ export default function Home() {
                       !isMouseTesting &&
                       !isKeyboardTesting &&
                       !isMouseMoveTesting &&
-                      testResults.filter((r) => r.testType === 'mouse')
-                        .length === 0
+                      testResults.filter((r) => r.testType === 'mouse').length === 0
                     ? handleMouseRestart
                     : undefined
                 }
-                onContextMenu={(e) => e.preventDefault()}
-                onDragStart={(e) => e.preventDefault()}
-                onMouseDown={(e) => e.preventDefault()}
-                draggable={false}
-                style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
-              >
-                {waitingForInput && isMouseTesting && (
-                  <div className="text-center pointer-events-none">
-                    <Zap className="w-8 h-8 mx-auto mb-2 text-green-500" />
-                    <p className="text-sm font-medium">请快速点击此区域！</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      测试 {mouseTestCount}/{MAX_TEST_COUNT}
-                    </p>
-                  </div>
-                )}
-
-                {mouseTestReady &&
-                  !isMouseTesting &&
-                  !isKeyboardTesting &&
-                  !isMouseMoveTesting && (
-                    <div className="text-center pointer-events-none">
-                      {testResults.filter((r) => r.testType === 'mouse')
-                        .length > 0 ? (
-                        <>
-                          <Mouse className="w-8 h-8 mx-auto mb-2 text-green-600" />
-                          <p className="text-sm font-medium text-green-600">
-                            鼠标测试已完成
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            点击下方按钮开始新的测试
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <Mouse className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-                          <p className="text-sm font-medium text-blue-600">
-                            点击此区域开始鼠标测试
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            将进行20次连续延迟测试
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  )}
-                {!mouseTestReady && !isMouseTesting && (
-                  <div className="text-center pointer-events-none">
-                    <Timer className="w-8 h-8 mx-auto mb-2 text-amber-500" />
-                    <p className="text-sm text-amber-600">准备下次测试中...</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      请稍等片刻
-                    </p>
-                  </div>
-                )}
-                {(isKeyboardTesting || isMouseMoveTesting) && (
-                  <div className="text-center pointer-events-none">
-                    <Mouse className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {isKeyboardTesting
-                        ? '键盘测试进行中'
-                        : '鼠标晃动测试进行中'}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      请等待当前测试完成
-                    </p>
-                  </div>
-                )}
-              </div>
+              />
 
               {/* 鼠标测试进度条和重新开始按钮 */}
               {(isMouseTesting ||
-                testResults.filter((r) => r.testType === 'mouse').length >
-                  0) && (
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>测试进度</span>
-                      <span>
-                        {isMouseTesting
-                          ? mouseTestCount
-                          : testResults.filter((r) => r.testType === 'mouse')
-                              .length}
-                        /{MAX_TEST_COUNT}
-                      </span>
-                    </div>
-                    <Progress
-                      value={
-                        isMouseTesting
-                          ? (mouseTestCount / MAX_TEST_COUNT) * 100
-                          : 100
-                      }
-                      className={`w-full ${
-                        !isMouseTesting
-                          ? '[&>[data-slot=progress-indicator]]:bg-green-400'
-                          : ''
-                      }`}
-                    />
-                  </div>
-                  <Button
-                    onClick={handleMouseRestart}
-                    disabled={isKeyboardTesting || isMouseMoveTesting}
-                    className="w-full"
-                    variant="default"
-                  >
-                    {isMouseTesting ? '重新开始测试' : '开始新的测试'}
-                  </Button>
-                </div>
+                testResults.filter((r) => r.testType === 'mouse').length > 0) && (
+                <TestProgress
+                  testType="response"
+                  currentCount={isMouseTesting ? mouseTestCount : testResults.filter((r) => r.testType === 'mouse').length}
+                  maxCount={MAX_TEST_COUNT}
+                  isActive={isMouseTesting}
+                  isDisabled={isKeyboardTesting || isMouseMoveTesting || isKeyboardReportRateTesting}
+                  onRestart={handleMouseRestart}
+                />
               )}
 
               {/* 图表和性能分析区域 */}
@@ -713,181 +397,12 @@ export default function Home() {
                   </div>
 
                   {/* 鼠标性能统计 */}
-                  <div className="flex flex-col h-full">
-                    <div className="flex items-center gap-2 mb-4">
-                      <BarChart3 className="w-4 h-4" />
-                      <h4 className="font-medium">鼠标性能分析</h4>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-4 flex-1 flex flex-col justify-center">
-                      <div className="grid grid-cols-1 gap-4">
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
-                            延迟性能指标
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                平均响应延迟
-                              </span>
-                              <span className="font-medium text-sm text-blue-600 dark:text-blue-400">
-                                {mouseStats.avg}ms
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                最小延迟 (Min)
-                              </span>
-                              <span className="font-medium text-sm text-emerald-600 dark:text-emerald-400">
-                                {mouseStats.min}ms
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                最大延迟 (Max)
-                              </span>
-                              <span className="font-medium text-sm text-orange-600 dark:text-orange-400">
-                                {mouseStats.max}ms
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                延迟范围 (Range)
-                              </span>
-                              <span className="font-medium text-sm text-violet-600 dark:text-violet-400">
-                                {mouseStats.max - mouseStats.min}ms
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                中位数延迟
-                              </span>
-                              <span className="font-medium text-sm text-teal-600 dark:text-teal-400">
-                                {(() => {
-                                  const results = testResults.filter(r => r.testType === 'mouse')
-                                  if (results.length === 0) return '0ms'
-                                  const times = results.map(r => r.responseTime).sort((a, b) => a - b)
-                                  const median = times.length % 2 === 0
-                                    ? (times[times.length / 2 - 1] + times[times.length / 2]) / 2
-                                    : times[Math.floor(times.length / 2)]
-                                  return Math.round(median * 100) / 100 + 'ms'
-                                })()}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
-                            统计学分析指标
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                标准差 (σ)
-                              </span>
-                              <span className="font-medium text-sm text-cyan-600 dark:text-cyan-400">
-                                {(() => {
-                                  const results = testResults.filter(
-                                    (r) => r.testType === 'mouse'
-                                  )
-                                  if (results.length === 0) return '0ms'
-                                  const times = results.map(
-                                    (r) => r.responseTime
-                                  )
-                                  const avg =
-                                    times.reduce((a, b) => a + b, 0) /
-                                    times.length
-                                  const variance =
-                                    times.reduce(
-                                      (acc, time) =>
-                                        acc + Math.pow(time - avg, 2),
-                                      0
-                                    ) / times.length
-                                  return Math.round(Math.sqrt(variance) * 100) / 100 + 'ms'
-                                })()}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                变异系数 (CV)
-                              </span>
-                              <span className="font-medium text-sm text-pink-600 dark:text-pink-400">
-                                {(() => {
-                                  const results = testResults.filter(
-                                    (r) => r.testType === 'mouse'
-                                  )
-                                  if (
-                                    results.length === 0 ||
-                                    mouseStats.avg === 0
-                                  )
-                                    return '0%'
-                                  const times = results.map(
-                                    (r) => r.responseTime
-                                  )
-                                  const avg =
-                                    times.reduce((a, b) => a + b, 0) /
-                                    times.length
-                                  const variance =
-                                    times.reduce(
-                                      (acc, time) =>
-                                        acc + Math.pow(time - avg, 2),
-                                      0
-                                    ) / times.length
-                                  const stdDev = Math.sqrt(variance)
-                                  return Math.round((stdDev / avg) * 100 * 100) / 100 + '%'
-                                })()}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                95分位数 (P95)
-                              </span>
-                              <span className="font-medium text-sm text-rose-600 dark:text-rose-400">
-                                {(() => {
-                                  const results = testResults.filter(
-                                    (r) => r.testType === 'mouse'
-                                  )
-                                  if (results.length === 0) return '0ms'
-                                  const times = results
-                                    .map((r) => r.responseTime)
-                                    .sort((a, b) => a - b)
-                                  const index =
-                                    Math.ceil(times.length * 0.95) - 1
-                                  return times[Math.max(0, index)] + 'ms'
-                                })()}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                99分位数 (P99)
-                              </span>
-                              <span className="font-medium text-sm text-amber-600 dark:text-amber-400">
-                                {(() => {
-                                  const results = testResults.filter(
-                                    (r) => r.testType === 'mouse'
-                                  )
-                                  if (results.length === 0) return '0ms'
-                                  const times = results
-                                    .map((r) => r.responseTime)
-                                    .sort((a, b) => a - b)
-                                  const index =
-                                    Math.ceil(times.length * 0.99) - 1
-                                  return times[Math.max(0, index)] + 'ms'
-                                })()}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                样本数量 (N)
-                              </span>
-                              <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
-                                {mouseStats.count}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <PerformanceStats
+                    type="response"
+                    title="鼠标性能分析"
+                    stats={mouseStats}
+                    testResults={testResults.filter((r) => r.testType === 'mouse')}
+                  />
                 </div>
               )}
             </CardContent>
@@ -1961,285 +1476,16 @@ export default function Home() {
         </div>
 
         {/* 综合性能分析 - 独占一行，分三列 */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="w-5 h-5" />
-              综合性能分析报告
-            </CardTitle>
-            <CardDescription>
-              基于所有测试数据的深度性能分析，包含延迟统计、稳定性评估和设备对比
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* 性能指标 */}
-              <div className="bg-muted/30 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Target className="w-4 h-4 text-blue-500" />
-                  <h4 className="font-medium">性能指标</h4>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      综合平均延迟
-                    </span>
-                    <span className="font-medium text-sm text-blue-600 dark:text-blue-400">
-                      {overallStats.avg}ms
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      最佳响应时间
-                    </span>
-                    <span className="font-medium text-sm text-emerald-600 dark:text-emerald-400">
-                      {overallStats.min}ms
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      最差响应时间
-                    </span>
-                    <span className="font-medium text-sm text-orange-600 dark:text-orange-400">
-                      {overallStats.max}ms
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      总测试样本
-                    </span>
-                    <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
-                      {overallStats.count}次
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      延迟范围
-                    </span>
-                    <span className="font-medium text-sm text-violet-600 dark:text-violet-400">
-                      {overallStats.max - overallStats.min}ms
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 高级分析指标 */}
-              <div className="bg-muted/30 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <TrendingUp className="w-4 h-4 text-green-500" />
-                  <h4 className="font-medium">高级分析指标</h4>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      系统稳定性
-                    </span>
-                    <span
-                      className={`font-medium text-sm ${
-                        overallAdvancedStats.stability >= 80
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : overallAdvancedStats.stability >= 60
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-rose-600 dark:text-rose-400'
-                      }`}
-                    >
-                      {overallAdvancedStats.stability}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      响应一致性
-                    </span>
-                    <span
-                      className={`font-medium text-sm ${
-                        overallAdvancedStats.consistency >= 80
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : overallAdvancedStats.consistency >= 60
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-rose-600 dark:text-rose-400'
-                      }`}
-                    >
-                      {overallAdvancedStats.consistency}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      性能评分
-                    </span>
-                    <span
-                      className={`font-medium text-sm ${
-                        overallAdvancedStats.performance >= 80
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : overallAdvancedStats.performance >= 60
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-rose-600 dark:text-rose-400'
-                      }`}
-                    >
-                      {overallAdvancedStats.performance}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      数据可靠性
-                    </span>
-                    <span
-                      className={`font-medium text-sm ${
-                        overallAdvancedStats.reliability >= 80
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : overallAdvancedStats.reliability >= 60
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-rose-600 dark:text-rose-400'
-                      }`}
-                    >
-                      {overallAdvancedStats.reliability}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      综合评级
-                    </span>
-                    <span
-                      className={`font-medium text-sm ${
-                        (overallAdvancedStats.stability +
-                          overallAdvancedStats.consistency +
-                          overallAdvancedStats.performance +
-                          overallAdvancedStats.reliability) /
-                          4 >=
-                        80
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : (overallAdvancedStats.stability +
-                              overallAdvancedStats.consistency +
-                              overallAdvancedStats.performance +
-                              overallAdvancedStats.reliability) /
-                              4 >=
-                            60
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-rose-600 dark:text-rose-400'
-                      }`}
-                    >
-                      {Math.round(
-                        (overallAdvancedStats.stability +
-                          overallAdvancedStats.consistency +
-                          overallAdvancedStats.performance +
-                          overallAdvancedStats.reliability) /
-                          4
-                      )}
-                      %
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 设备对比分析 */}
-              <div className="bg-muted/30 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 className="w-4 h-4 text-purple-500" />
-                  <h4 className="font-medium">设备对比分析</h4>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      鼠标平均延迟
-                    </span>
-                    <span className="font-medium text-sm text-blue-600 dark:text-blue-400">
-                      {mouseStats.avg || 0}ms
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      键盘平均延迟
-                    </span>
-                    <span className="font-medium text-sm text-indigo-600 dark:text-indigo-400">
-                      {keyboardStats.avg || 0}ms
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      性能差异
-                    </span>
-                    <span className="font-medium text-sm text-violet-600 dark:text-violet-400">
-                      {mouseStats.avg && keyboardStats.avg
-                        ? `${Math.abs(mouseStats.avg - keyboardStats.avg)}ms`
-                        : '暂无数据'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      更优设备
-                    </span>
-                    <span className="font-medium text-sm text-emerald-600 dark:text-emerald-400">
-                      {mouseStats.avg && keyboardStats.avg
-                        ? mouseStats.avg < keyboardStats.avg
-                          ? '鼠标'
-                          : '键盘'
-                        : mouseStats.avg
-                        ? '鼠标'
-                        : keyboardStats.avg
-                        ? '键盘'
-                        : '暂无数据'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      测试完成度
-                    </span>
-                    <span className="font-medium text-sm text-teal-600 dark:text-teal-400">
-                      {Math.round(
-                        (overallStats.count / (MAX_TEST_COUNT * 2)) * 100
-                      )}
-                      %
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <OverallAnalysis
+          overallStats={overallStats}
+          mouseStats={mouseStats}
+          keyboardStats={keyboardStats}
+          overallAdvancedStats={overallAdvancedStats}
+          maxTestCount={MAX_TEST_COUNT}
+        />
 
         {/* Instructions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>使用说明</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-medium mb-2">🖱️ 鼠标测试</h4>
-                <div className="text-sm text-muted-foreground space-y-2">
-                  <p>
-                    <strong>延迟测试：</strong>点击测试区域，快速连续点击20次
-                  </p>
-                  <p>
-                    <strong>回报率测试：</strong>点击测试区域，快速晃动鼠标5秒
-                  </p>
-                </div>
-              </div>
-              <div>
-                <h4 className="font-medium mb-2">⌨️ 键盘测试</h4>
-                <div className="text-sm text-muted-foreground space-y-2">
-                  <p>
-                    <strong>延迟测试：</strong>
-                    点击测试区域获得焦点，快速连续按键20次
-                  </p>
-                  <p>
-                    <strong>回报率测试：</strong>
-                    点击测试区域获得焦点，连续按键5秒
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="pt-4 border-t">
-              <h4 className="font-medium mb-2">💡 注意事项</h4>
-              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li>测试时保持专注，看到提示后快速响应</li>
-                <li>每次重新测试会清除之前的数据</li>
-                <li>有线连接通常比无线连接性能更好</li>
-                <li>测试结果可能受系统负载影响</li>
-                <li>建议多次测试获得更准确的结果</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
+        <Instructions />
       </div>
     </div>
   )
