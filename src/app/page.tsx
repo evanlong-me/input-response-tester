@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   Card,
   CardContent,
@@ -8,15 +8,10 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { Button } from '@/components/ui/button'
 
 import {
   Mouse,
   Keyboard,
-  Zap,
-  BarChart3,
-  Timer,
   MousePointer2
 } from 'lucide-react'
 
@@ -26,6 +21,8 @@ import { TestProgress } from '@/components/test-progress'
 import { PerformanceStats } from '@/components/performance-stats'
 import { Instructions } from '@/components/instructions'
 import { OverallAnalysis } from '@/components/overall-analysis'
+import { ReportRateStatsDisplay } from '@/components/report-rate-stats'
+
 import {
   calculateStats,
   calculateAdvancedStats,
@@ -58,7 +55,6 @@ export default function Home() {
   // 添加新的状态来控制测试区域的准备状态
   const [mouseTestReady, setMouseTestReady] = useState(true)
   const [keyboardTestReady, setKeyboardTestReady] = useState(true)
-  const [keyboardAreaFocused, setKeyboardAreaFocused] = useState(false)
 
   // 连续测试相关状态
   const [mouseTestCount, setMouseTestCount] = useState(0)
@@ -81,8 +77,7 @@ export default function Home() {
   const [keyboardReportRateTestProgress, setKeyboardReportRateTestProgress] =
     useState(0)
 
-  const mouseMoveTestAreaRef = useRef<HTMLDivElement>(null)
-  const keyboardReportRateTestAreaRef = useRef<HTMLDivElement>(null)
+
 
 
 
@@ -151,7 +146,6 @@ export default function Home() {
     setIsKeyboardTesting(true)
     setKeyboardTestReady(false)
     setKeyboardTestCount(0)
-    setKeyboardAreaFocused(false) // 重置焦点状态
     // 立即开始第一次测试，无延迟
     setWaitingForInput(true)
     setTestStartTime(performance.now())
@@ -258,12 +252,7 @@ export default function Home() {
       }
 
       // 响应时间测试 - 仅在测试进行中响应按键
-      if (
-        waitingForInput &&
-        isKeyboardTesting &&
-        keyboardTestCount < MAX_TEST_COUNT
-      ) {
-        // 完成键盘测试
+      if (isKeyboardTesting && waitingForInput) {
         e.preventDefault()
 
         // 先增加测试计数
@@ -289,7 +278,6 @@ export default function Home() {
           setIsKeyboardTesting(false)
           setKeyboardTestCount(0)
           setKeyboardTestReady(true)
-          setKeyboardAreaFocused(false) // 清除焦点状态
         }
       }
     }
@@ -423,29 +411,18 @@ export default function Home() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* 鼠标晃动测试区域 */}
-              <div
-                ref={mouseMoveTestAreaRef}
-                className={`
-                  h-40 rounded-lg border-2 border-dashed flex items-center justify-center transition-all
-                  select-none user-select-none touch-manipulation cursor-crosshair
-                  ${
-                    isMouseMoveTesting
-                      ? 'border-purple-400 bg-purple-50/50 dark:bg-purple-950/10 animate-pulse'
-                      : mouseMoveTestReady &&
-                        !isMouseTesting &&
-                        !isKeyboardTesting &&
-                        !isMouseMoveTesting &&
-                        mouseMoveEvents.length === 0
-                      ? 'border-purple-400 bg-purple-50/50 dark:bg-purple-950/10 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/20'
-                      : mouseMoveTestReady &&
-                        !isMouseTesting &&
-                        !isKeyboardTesting &&
-                        !isMouseMoveTesting &&
-                        mouseMoveEvents.length > 0
-                      ? 'border-green-400 bg-green-50/50 dark:bg-green-950/10'
-                      : 'border-border'
-                  }
-                `}
+              <TestArea
+                testType="mouse-move"
+                isActive={isMouseMoveTesting}
+                isReady={mouseMoveTestReady}
+                isWaiting={isMouseMoveTesting}
+                hasResults={mouseMoveEvents.length > 0}
+                isOtherTestRunning={isMouseTesting || isKeyboardTesting || isKeyboardReportRateTesting}
+                totalEvents={mouseMoveEvents.length}
+                remainingTime={Math.ceil(
+                  (MOUSE_MOVE_TEST_DURATION -
+                    (mouseMoveTestProgress * MOUSE_MOVE_TEST_DURATION) / 100) / 1000
+                )}
                 onClick={
                   mouseMoveTestReady &&
                   !isMouseTesting &&
@@ -456,111 +433,19 @@ export default function Home() {
                     : undefined
                 }
                 onMouseMove={handleMouseMove}
-                onContextMenu={(e) => e.preventDefault()}
-                onDragStart={(e) => e.preventDefault()}
-                onMouseDown={(e) => e.preventDefault()}
-                draggable={false}
-                style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
-              >
-                {isMouseMoveTesting && (
-                  <div className="text-center pointer-events-none">
-                    <MousePointer2 className="w-8 h-8 mx-auto mb-2 text-purple-500 animate-bounce" />
-                    <p className="text-sm font-medium">
-                      请在此区域内快速晃动鼠标！
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      已捕获 {mouseMoveEvents.length} 个移动事件
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      剩余时间:{' '}
-                      {Math.ceil(
-                        (MOUSE_MOVE_TEST_DURATION -
-                          (mouseMoveTestProgress * MOUSE_MOVE_TEST_DURATION) /
-                            100) /
-                          1000
-                      )}
-                      秒
-                    </p>
-                  </div>
-                )}
-
-                {mouseMoveTestReady &&
-                  !isMouseTesting &&
-                  !isKeyboardTesting &&
-                  !isMouseMoveTesting && (
-                    <div className="text-center pointer-events-none">
-                      {mouseMoveEvents.length > 0 ? (
-                        <>
-                          <MousePointer2 className="w-8 h-8 mx-auto mb-2 text-green-600" />
-                          <p className="text-sm font-medium text-green-600">
-                            鼠标晃动测试已完成
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            捕获了 {mouseMoveEvents.length} 个移动事件
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            点击下方按钮开始新的测试
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <MousePointer2 className="w-8 h-8 mx-auto mb-2 text-purple-500" />
-                          <p className="text-sm font-medium text-purple-600">
-                            点击此区域开始鼠标晃动测试
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            将进行5秒钟的鼠标移动监测
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                {(isMouseTesting || isKeyboardTesting) && (
-                  <div className="text-center pointer-events-none">
-                    <MousePointer2 className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {isMouseTesting ? '鼠标点击测试进行中' : '键盘测试进行中'}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      请等待当前测试完成
-                    </p>
-                  </div>
-                )}
-              </div>
+                className="h-40"
+              />
 
               {/* 鼠标晃动测试进度条和重新开始按钮 */}
               {(isMouseMoveTesting || mouseMoveEvents.length > 0) && (
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>测试进度</span>
-                      <span>
-                        {isMouseMoveTesting
-                          ? `${Math.round(mouseMoveTestProgress)}%`
-                          : '100%'}
-                      </span>
-                    </div>
-                    <Progress
-                      value={isMouseMoveTesting ? mouseMoveTestProgress : 100}
-                      className={`w-full ${
-                        !isMouseMoveTesting
-                          ? '[&>[data-slot=progress-indicator]]:bg-green-400'
-                          : '[&>[data-slot=progress-indicator]]:bg-purple-400'
-                      }`}
-                    />
-                  </div>
-                  <Button
-                    onClick={handleMouseMoveTestStart}
-                    disabled={
-                      isMouseTesting || isKeyboardTesting || isMouseMoveTesting
-                    }
-                    className="w-full"
-                    variant="default"
-                  >
-                    {isMouseMoveTesting ? '测试进行中...' : '开始新的晃动测试'}
-                  </Button>
-                </div>
+                <TestProgress
+                  testType="report-rate"
+                  progress={isMouseMoveTesting ? mouseMoveTestProgress : 100}
+                  isActive={isMouseMoveTesting}
+                  isDisabled={isMouseTesting || isKeyboardTesting || isKeyboardReportRateTesting}
+                  onRestart={handleMouseMoveTestStart}
+                  buttonText={isMouseMoveTesting ? '测试进行中...' : '开始新的晃动测试'}
+                />
               )}
 
               {/* 鼠标晃动测试结果分析 */}
@@ -575,168 +460,11 @@ export default function Home() {
                   </div>
 
                   {/* 鼠标晃动回报率统计 */}
-                  <div className="flex flex-col h-full">
-                    <div className="flex items-center gap-2 mb-4">
-                      <BarChart3 className="w-4 h-4" />
-                      <h4 className="font-medium">鼠标晃动回报率分析</h4>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-4 flex-1 flex flex-col justify-center">
-                      <div className="grid grid-cols-1 gap-4">
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
-                            轮询频率指标
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                平均轮询频率
-                              </span>
-                              <span className="font-medium text-sm text-purple-600 dark:text-purple-400">
-                                {mouseMoveReportRateStats.reportRate}Hz
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                有效轮询频率
-                              </span>
-                              <span className="font-medium text-sm text-indigo-600 dark:text-indigo-400">
-                                {mouseMoveReportRateStats.effectiveReportRate}Hz
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                峰值频率 (Max)
-                              </span>
-                              <span className="font-medium text-sm text-emerald-600 dark:text-emerald-400">
-                                {mouseMoveReportRateStats.maxReportRate}Hz
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                最低频率 (Min)
-                              </span>
-                              <span className="font-medium text-sm text-orange-600 dark:text-orange-400">
-                                {mouseMoveReportRateStats.minReportRate}Hz
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                平均采样间隔
-                              </span>
-                              <span className="font-medium text-sm text-blue-600 dark:text-blue-400">
-                                {mouseMoveReportRateStats.averageInterval}ms
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                中位数间隔
-                              </span>
-                              <span className="font-medium text-sm text-teal-600 dark:text-teal-400">
-                                {mouseMoveReportRateStats.medianInterval}ms
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
-                            时序稳定性指标
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                时序抖动 (Jitter)
-                              </span>
-                              <span className="font-medium text-sm text-amber-600 dark:text-amber-400">
-                                {mouseMoveReportRateStats.jitter}ms
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                时序精度评分
-                              </span>
-                              <span
-                                className={`font-medium text-sm ${
-                                  mouseMoveReportRateStats.temporalPrecision >= 80
-                                    ? 'text-emerald-600 dark:text-emerald-400'
-                                    : mouseMoveReportRateStats.temporalPrecision >= 60
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : 'text-rose-600 dark:text-rose-400'
-                                }`}
-                              >
-                                {mouseMoveReportRateStats.temporalPrecision}%
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                频率稳定性评分
-                              </span>
-                              <span
-                                className={`font-medium text-sm ${
-                                  mouseMoveReportRateStats.frequencyStability >= 80
-                                    ? 'text-emerald-600 dark:text-emerald-400'
-                                    : mouseMoveReportRateStats.frequencyStability >= 60
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : 'text-rose-600 dark:text-rose-400'
-                                }`}
-                              >
-                                {mouseMoveReportRateStats.frequencyStability}%
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                综合稳定性评分
-                              </span>
-                              <span
-                                className={`font-medium text-sm ${
-                                  mouseMoveReportRateStats.stability >= 80
-                                    ? 'text-emerald-600 dark:text-emerald-400'
-                                    : mouseMoveReportRateStats.stability >= 60
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : 'text-rose-600 dark:text-rose-400'
-                                }`}
-                              >
-                                {mouseMoveReportRateStats.stability}%
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                间隔方差 (σ²)
-                              </span>
-                              <span className="font-medium text-sm text-cyan-600 dark:text-cyan-400">
-                                {mouseMoveReportRateStats.intervalVariance}ms²
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                95分位间隔 (P95)
-                              </span>
-                              <span className="font-medium text-sm text-pink-600 dark:text-pink-400">
-                                {mouseMoveReportRateStats.p95Interval}ms
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                采样事件总数
-                              </span>
-                              <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
-                                {mouseMoveReportRateStats.totalEvents}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                有效测试时长
-                              </span>
-                              <span className="font-medium text-sm text-violet-600 dark:text-violet-400">
-                                {(
-                                  mouseMoveReportRateStats.testDuration / 1000
-                                ).toFixed(2)}s
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <ReportRateStatsDisplay
+                    title="鼠标晃动回报率分析"
+                    stats={mouseMoveReportRateStats}
+                    deviceType="mouse"
+                  />
                 </div>
               )}
             </CardContent>
@@ -749,196 +477,46 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Keyboard className="w-5 h-5" />
-                键盘轮询频率与信号完整性测试
+                键盘延迟响应性能测试
               </CardTitle>
               <CardDescription>
-                通过连续按键事件序列分析键盘轮询频率、信号时序稳定性和数据传输完整性，评估键盘控制器性能
+                基于刺激-响应模型的键盘按键延迟测量，采用高精度时间戳记录，分析输入延迟分布特征与系统响应性能
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* 测试区域 */}
-              <div
-                className={`
-                 h-32 rounded-lg border-2 border-dashed flex items-center justify-center transition-all
-                 select-none user-select-none touch-manipulation outline-none
-                 ${
-                   waitingForInput && isKeyboardTesting
-                     ? 'border-green-400 bg-green-50/50 dark:bg-green-950/10 animate-pulse cursor-pointer'
-                     : keyboardTestReady &&
-                       !isMouseTesting &&
-                       !isMouseMoveTesting &&
-                       keyboardAreaFocused
-                     ? 'border-blue-400 bg-blue-50/50 dark:bg-blue-950/10 cursor-pointer'
-                     : !keyboardTestReady && !isKeyboardTesting
-                     ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/20'
-                     : keyboardTestReady &&
-                       !isKeyboardTesting &&
-                       !isMouseTesting &&
-                       !isMouseMoveTesting &&
-                       testResults.filter((r) => r.testType === 'keyboard')
-                         .length === 0
-                     ? 'border-blue-400 bg-blue-50/50 dark:bg-blue-950/10 cursor-pointer hover:bg-blue-100/50 dark:hover:bg-blue-900/20'
-                     : keyboardTestReady &&
-                       !isKeyboardTesting &&
-                       !isMouseTesting &&
-                       !isMouseMoveTesting &&
-                       testResults.filter((r) => r.testType === 'keyboard')
-                         .length > 0
-                     ? 'border-green-400 bg-green-50/50 dark:bg-green-950/10'
-                     : 'border-border'
-                 }
-               `}
-                tabIndex={
-                  isKeyboardTesting ||
-                  (keyboardTestReady &&
-                    !isMouseTesting &&
-                    !isMouseMoveTesting &&
-                    !isKeyboardTesting &&
-                    testResults.filter((r) => r.testType === 'keyboard')
-                      .length === 0)
-                    ? 0
-                    : -1
-                }
+              <TestArea
+                testType="keyboard"
+                isActive={isKeyboardTesting}
+                isReady={keyboardTestReady}
+                isWaiting={waitingForInput}
+                hasResults={testResults.filter((r) => r.testType === 'keyboard').length > 0}
+                isOtherTestRunning={isMouseTesting || isMouseMoveTesting || isKeyboardReportRateTesting}
+                currentCount={keyboardTestCount}
+                maxCount={MAX_TEST_COUNT}
                 onClick={
-                  isKeyboardTesting
-                    ? () => setKeyboardAreaFocused(true)
-                    : keyboardTestReady &&
-                      !isKeyboardTesting &&
-                      !isMouseTesting &&
-                      !isMouseMoveTesting &&
-                      testResults.filter((r) => r.testType === 'keyboard')
-                        .length === 0
+                  keyboardTestReady &&
+                  !isKeyboardTesting &&
+                  !isMouseTesting &&
+                  !isMouseMoveTesting &&
+                  !isKeyboardReportRateTesting &&
+                  testResults.filter((r) => r.testType === 'keyboard').length === 0
                     ? handleKeyboardRestart
                     : undefined
                 }
-                onFocus={
-                  isKeyboardTesting
-                    ? () => setKeyboardAreaFocused(true)
-                    : keyboardTestReady &&
-                      !isMouseTesting &&
-                      !isMouseMoveTesting &&
-                      !isKeyboardTesting &&
-                      testResults.filter((r) => r.testType === 'keyboard')
-                        .length === 0
-                    ? () => setKeyboardAreaFocused(true)
-                    : undefined
-                }
-                onBlur={
-                  isKeyboardTesting ||
-                  (keyboardTestReady &&
-                    !isMouseTesting &&
-                    !isMouseMoveTesting &&
-                    !isKeyboardTesting &&
-                    testResults.filter((r) => r.testType === 'keyboard')
-                      .length === 0)
-                    ? () => setKeyboardAreaFocused(false)
-                    : undefined
-                }
-                onContextMenu={(e) => e.preventDefault()}
-                onDragStart={(e) => e.preventDefault()}
-                onMouseDown={(e) => e.preventDefault()}
-                draggable={false}
-                style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
-              >
-                {waitingForInput && isKeyboardTesting && (
-                  <div className="text-center pointer-events-none">
-                    <Zap className="w-8 h-8 mx-auto mb-2 text-green-500" />
-                    <p className="text-sm font-medium">请快速按任意键！</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      测试 {keyboardTestCount}/{MAX_TEST_COUNT}
-                    </p>
-                  </div>
-                )}
-
-                {keyboardTestReady &&
-                  !isKeyboardTesting &&
-                  !isMouseTesting &&
-                  !isMouseMoveTesting && (
-                    <div className="text-center pointer-events-none">
-                      {testResults.filter((r) => r.testType === 'keyboard')
-                        .length > 0 ? (
-                        <>
-                          <Keyboard className="w-8 h-8 mx-auto mb-2 text-green-600" />
-                          <p className="text-sm font-medium text-green-600">
-                            键盘测试已完成
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            点击下方按钮开始新的测试
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <Keyboard className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-                          <p className="text-sm font-medium text-blue-600">
-                            点击此区域开始键盘测试
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            将进行20次连续延迟测试
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  )}
-                {!keyboardTestReady && !isKeyboardTesting && (
-                  <div className="text-center pointer-events-none">
-                    <Timer className="w-8 h-8 mx-auto mb-2 text-amber-500" />
-                    <p className="text-sm text-amber-600">准备下次测试中...</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      请稍等片刻
-                    </p>
-                  </div>
-                )}
-                {(isMouseTesting || isMouseMoveTesting) && (
-                  <div className="text-center pointer-events-none">
-                    <Keyboard className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {isMouseTesting ? '鼠标测试进行中' : '鼠标晃动测试进行中'}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      请等待当前测试完成
-                    </p>
-                  </div>
-                )}
-              </div>
+              />
 
               {/* 键盘测试进度条和重新开始按钮 */}
               {(isKeyboardTesting ||
-                testResults.filter((r) => r.testType === 'keyboard').length >
-                  0) && (
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>测试进度</span>
-                      <span>
-                        {isKeyboardTesting
-                          ? keyboardTestCount
-                          : testResults.filter((r) => r.testType === 'keyboard')
-                              .length}
-                        /{MAX_TEST_COUNT}
-                      </span>
-                    </div>
-                    <Progress
-                      value={
-                        isKeyboardTesting
-                          ? (keyboardTestCount / MAX_TEST_COUNT) * 100
-                          : 100
-                      }
-                      className={`w-full ${
-                        !isKeyboardTesting
-                          ? '[&>[data-slot=progress-indicator]]:bg-green-400'
-                          : ''
-                      }`}
-                    />
-                  </div>
-                  <Button
-                    onClick={handleKeyboardRestart}
-                    disabled={isMouseTesting || isMouseMoveTesting}
-                    className="w-full"
-                    variant="default"
-                  >
-                    {isKeyboardTesting ? '重新开始测试' : '开始新的测试'}
-                  </Button>
-                </div>
+                testResults.filter((r) => r.testType === 'keyboard').length > 0) && (
+                <TestProgress
+                  testType="response"
+                  currentCount={isKeyboardTesting ? keyboardTestCount : testResults.filter((r) => r.testType === 'keyboard').length}
+                  maxCount={MAX_TEST_COUNT}
+                  isActive={isKeyboardTesting}
+                  isDisabled={isMouseTesting || isMouseMoveTesting || isKeyboardReportRateTesting}
+                  onRestart={handleKeyboardRestart}
+                />
               )}
 
               {/* 图表和性能分析区域 */}
@@ -956,146 +534,12 @@ export default function Home() {
                   </div>
 
                   {/* 键盘性能统计 */}
-                  <div className="flex flex-col h-full">
-                    <div className="flex items-center gap-2 mb-4">
-                      <BarChart3 className="w-4 h-4" />
-                      <h4 className="font-medium">键盘性能分析</h4>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-4 flex-1 flex flex-col justify-center">
-                      <div className="grid grid-cols-1 gap-4">
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
-                            延迟指标
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                平均延迟
-                              </span>
-                              <span className="font-medium text-sm text-blue-600 dark:text-blue-400">
-                                {keyboardStats.avg}ms
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                最佳表现
-                              </span>
-                              <span className="font-medium text-sm text-emerald-600 dark:text-emerald-400">
-                                {keyboardStats.min}ms
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                最差表现
-                              </span>
-                              <span className="font-medium text-sm text-orange-600 dark:text-orange-400">
-                                {keyboardStats.max}ms
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                延迟范围
-                              </span>
-                              <span className="font-medium text-sm text-violet-600 dark:text-violet-400">
-                                {keyboardStats.max - keyboardStats.min}ms
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
-                            稳定性指标
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                标准差
-                              </span>
-                              <span className="font-medium text-sm text-cyan-600 dark:text-cyan-400">
-                                {(() => {
-                                  const results = testResults.filter(
-                                    (r) => r.testType === 'keyboard'
-                                  )
-                                  if (results.length === 0) return '0ms'
-                                  const times = results.map(
-                                    (r) => r.responseTime
-                                  )
-                                  const avg =
-                                    times.reduce((a, b) => a + b, 0) /
-                                    times.length
-                                  const variance =
-                                    times.reduce(
-                                      (acc, time) =>
-                                        acc + Math.pow(time - avg, 2),
-                                      0
-                                    ) / times.length
-                                  return Math.round(Math.sqrt(variance)) + 'ms'
-                                })()}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                变异系数
-                              </span>
-                              <span className="font-medium text-sm text-pink-600 dark:text-pink-400">
-                                {(() => {
-                                  const results = testResults.filter(
-                                    (r) => r.testType === 'keyboard'
-                                  )
-                                  if (
-                                    results.length === 0 ||
-                                    keyboardStats.avg === 0
-                                  )
-                                    return '0%'
-                                  const times = results.map(
-                                    (r) => r.responseTime
-                                  )
-                                  const avg =
-                                    times.reduce((a, b) => a + b, 0) /
-                                    times.length
-                                  const variance =
-                                    times.reduce(
-                                      (acc, time) =>
-                                        acc + Math.pow(time - avg, 2),
-                                      0
-                                    ) / times.length
-                                  const stdDev = Math.sqrt(variance)
-                                  return Math.round((stdDev / avg) * 100) + '%'
-                                })()}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                95%分位数
-                              </span>
-                              <span className="font-medium text-sm text-rose-600 dark:text-rose-400">
-                                {(() => {
-                                  const results = testResults.filter(
-                                    (r) => r.testType === 'keyboard'
-                                  )
-                                  if (results.length === 0) return '0ms'
-                                  const times = results
-                                    .map((r) => r.responseTime)
-                                    .sort((a, b) => a - b)
-                                  const index =
-                                    Math.ceil(times.length * 0.95) - 1
-                                  return times[Math.max(0, index)] + 'ms'
-                                })()}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                测试样本
-                              </span>
-                              <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
-                                {keyboardStats.count}次
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <PerformanceStats
+                    type="response"
+                    title="键盘性能分析"
+                    stats={keyboardStats}
+                    testResults={testResults.filter((r) => r.testType === 'keyboard')}
+                  />
                 </div>
               )}
             </CardContent>
@@ -1116,42 +560,18 @@ export default function Home() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* 键盘回报率测试区域 */}
-              <div
-                ref={keyboardReportRateTestAreaRef}
-                className={`
-                  h-40 rounded-lg border-2 border-dashed flex items-center justify-center transition-all
-                  select-none user-select-none touch-manipulation outline-none
-                  ${
-                    isKeyboardReportRateTesting
-                      ? 'border-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/10 animate-pulse'
-                      : keyboardReportRateTestReady &&
-                        !isMouseTesting &&
-                        !isKeyboardTesting &&
-                        !isMouseMoveTesting &&
-                        !isKeyboardReportRateTesting &&
-                        keyboardReportRateEvents.length === 0
-                      ? 'border-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/10 cursor-pointer hover:bg-indigo-100/50 dark:hover:bg-indigo-900/20'
-                      : keyboardReportRateTestReady &&
-                        !isMouseTesting &&
-                        !isKeyboardTesting &&
-                        !isMouseMoveTesting &&
-                        !isKeyboardReportRateTesting &&
-                        keyboardReportRateEvents.length > 0
-                      ? 'border-green-400 bg-green-50/50 dark:bg-green-950/10'
-                      : 'border-border'
-                  }
-                `}
-                tabIndex={
-                  isKeyboardReportRateTesting ||
-                  (keyboardReportRateTestReady &&
-                    !isMouseTesting &&
-                    !isKeyboardTesting &&
-                    !isMouseMoveTesting &&
-                    !isKeyboardReportRateTesting &&
-                    keyboardReportRateEvents.length === 0)
-                    ? 0
-                    : -1
-                }
+              <TestArea
+                testType="keyboard-report-rate"
+                isActive={isKeyboardReportRateTesting}
+                isReady={keyboardReportRateTestReady}
+                isWaiting={isKeyboardReportRateTesting}
+                hasResults={keyboardReportRateEvents.length > 0}
+                isOtherTestRunning={isMouseTesting || isKeyboardTesting || isMouseMoveTesting}
+                totalEvents={keyboardReportRateEvents.length}
+                remainingTime={Math.ceil(
+                  (MOUSE_MOVE_TEST_DURATION -
+                    (keyboardReportRateTestProgress * MOUSE_MOVE_TEST_DURATION) / 100) / 1000
+                )}
                 onClick={
                   keyboardReportRateTestReady &&
                   !isMouseTesting &&
@@ -1162,137 +582,19 @@ export default function Home() {
                     ? handleKeyboardReportRateTestStart
                     : undefined
                 }
-                onFocus={
-                  keyboardReportRateTestReady &&
-                  !isMouseTesting &&
-                  !isKeyboardTesting &&
-                  !isMouseMoveTesting &&
-                  !isKeyboardReportRateTesting &&
-                  keyboardReportRateEvents.length === 0
-                    ? handleKeyboardReportRateTestStart
-                    : undefined
-                }
-                onContextMenu={(e) => e.preventDefault()}
-                onDragStart={(e) => e.preventDefault()}
-                onMouseDown={(e) => e.preventDefault()}
-                draggable={false}
-                style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
-              >
-                {isKeyboardReportRateTesting && (
-                  <div className="text-center pointer-events-none">
-                    <Keyboard className="w-8 h-8 mx-auto mb-2 text-indigo-500 animate-bounce" />
-                    <p className="text-sm font-medium">请保持连续按键输入！</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      已采样 {keyboardReportRateEvents.length} 个按键信号
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      剩余采样时间:{' '}
-                      {Math.ceil(
-                        (MOUSE_MOVE_TEST_DURATION -
-                          (keyboardReportRateTestProgress *
-                            MOUSE_MOVE_TEST_DURATION) /
-                            100) /
-                          1000
-                      )}
-                      秒
-                    </p>
-                  </div>
-                )}
-
-                {keyboardReportRateTestReady &&
-                  !isMouseTesting &&
-                  !isKeyboardTesting &&
-                  !isMouseMoveTesting &&
-                  !isKeyboardReportRateTesting && (
-                    <div className="text-center pointer-events-none">
-                      {keyboardReportRateEvents.length > 0 ? (
-                        <>
-                          <Keyboard className="w-8 h-8 mx-auto mb-2 text-green-600" />
-                          <p className="text-sm font-medium text-green-600">
-                            键盘轮询频率测试已完成
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            采样了 {keyboardReportRateEvents.length} 个按键信号
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            点击下方按钮开始新的测试
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <Keyboard className="w-8 h-8 mx-auto mb-2 text-indigo-500" />
-                          <p className="text-sm font-medium text-indigo-600">
-                            点击此区域开始键盘轮询频率测试
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            将进行5秒钟的按键信号采样
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                {(isMouseTesting ||
-                  isMouseMoveTesting ||
-                  isKeyboardTesting) && (
-                  <div className="text-center pointer-events-none">
-                    <Keyboard className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {isMouseTesting
-                        ? '鼠标点击测试进行中'
-                        : isMouseMoveTesting
-                        ? '鼠标晃动测试进行中'
-                        : '键盘延迟测试进行中'}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      请等待当前测试完成
-                    </p>
-                  </div>
-                )}
-              </div>
+                className="h-40"
+              />
 
               {/* 键盘回报率测试进度条和重新开始按钮 */}
-              {(isKeyboardReportRateTesting ||
-                keyboardReportRateEvents.length > 0) && (
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>测试进度</span>
-                      <span>
-                        {isKeyboardReportRateTesting
-                          ? `${Math.round(keyboardReportRateTestProgress)}%`
-                          : '100%'}
-                      </span>
-                    </div>
-                    <Progress
-                      value={
-                        isKeyboardReportRateTesting
-                          ? keyboardReportRateTestProgress
-                          : 100
-                      }
-                      className={`w-full ${
-                        !isKeyboardReportRateTesting
-                          ? '[&>[data-slot=progress-indicator]]:bg-green-400'
-                          : '[&>[data-slot=progress-indicator]]:bg-indigo-400'
-                      }`}
-                    />
-                  </div>
-                  <Button
-                    onClick={handleKeyboardReportRateTestStart}
-                    disabled={
-                      isMouseTesting ||
-                      isKeyboardTesting ||
-                      isMouseMoveTesting ||
-                      isKeyboardReportRateTesting
-                    }
-                    className="w-full"
-                    variant="default"
-                  >
-                    {isKeyboardReportRateTesting
-                      ? '信号采样进行中...'
-                      : '开始新的轮询频率测试'}
-                  </Button>
-                </div>
+              {(isKeyboardReportRateTesting || keyboardReportRateEvents.length > 0) && (
+                <TestProgress
+                  testType="report-rate"
+                  progress={isKeyboardReportRateTesting ? keyboardReportRateTestProgress : 100}
+                  isActive={isKeyboardReportRateTesting}
+                  isDisabled={isMouseTesting || isKeyboardTesting || isMouseMoveTesting || isKeyboardReportRateTesting}
+                  onRestart={handleKeyboardReportRateTestStart}
+                  buttonText={isKeyboardReportRateTesting ? '信号采样进行中...' : '开始新的轮询频率测试'}
+                />
               )}
 
               {/* 键盘回报率测试结果分析 */}
@@ -1307,168 +609,11 @@ export default function Home() {
                   </div>
 
                   {/* 键盘回报率统计 */}
-                  <div className="flex flex-col h-full">
-                    <div className="flex items-center gap-2 mb-4">
-                      <BarChart3 className="w-4 h-4" />
-                      <h4 className="font-medium">键盘轮询频率分析</h4>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-4 flex-1 flex flex-col justify-center">
-                      <div className="grid grid-cols-1 gap-4">
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
-                            轮询频率指标
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                平均轮询频率
-                              </span>
-                              <span className="font-medium text-sm text-indigo-600 dark:text-indigo-400">
-                                {keyboardMoveReportRateStats.reportRate}Hz
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                有效轮询频率
-                              </span>
-                              <span className="font-medium text-sm text-purple-600 dark:text-purple-400">
-                                {keyboardMoveReportRateStats.effectiveReportRate}Hz
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                峰值频率 (Max)
-                              </span>
-                              <span className="font-medium text-sm text-emerald-600 dark:text-emerald-400">
-                                {keyboardMoveReportRateStats.maxReportRate}Hz
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                最低频率 (Min)
-                              </span>
-                              <span className="font-medium text-sm text-orange-600 dark:text-orange-400">
-                                {keyboardMoveReportRateStats.minReportRate}Hz
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                平均信号间隔
-                              </span>
-                              <span className="font-medium text-sm text-blue-600 dark:text-blue-400">
-                                {keyboardMoveReportRateStats.averageInterval}ms
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                中位数间隔
-                              </span>
-                              <span className="font-medium text-sm text-teal-600 dark:text-teal-400">
-                                {keyboardMoveReportRateStats.medianInterval}ms
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
-                            信号完整性指标
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                时序抖动 (Jitter)
-                              </span>
-                              <span className="font-medium text-sm text-amber-600 dark:text-amber-400">
-                                {keyboardMoveReportRateStats.jitter}ms
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                时序精度评分
-                              </span>
-                              <span
-                                className={`font-medium text-sm ${
-                                  keyboardMoveReportRateStats.temporalPrecision >= 80
-                                    ? 'text-emerald-600 dark:text-emerald-400'
-                                    : keyboardMoveReportRateStats.temporalPrecision >= 60
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : 'text-rose-600 dark:text-rose-400'
-                                }`}
-                              >
-                                {keyboardMoveReportRateStats.temporalPrecision}%
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                频率稳定性评分
-                              </span>
-                              <span
-                                className={`font-medium text-sm ${
-                                  keyboardMoveReportRateStats.frequencyStability >= 80
-                                    ? 'text-emerald-600 dark:text-emerald-400'
-                                    : keyboardMoveReportRateStats.frequencyStability >= 60
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : 'text-rose-600 dark:text-rose-400'
-                                }`}
-                              >
-                                {keyboardMoveReportRateStats.frequencyStability}%
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                综合稳定性评分
-                              </span>
-                              <span
-                                className={`font-medium text-sm ${
-                                  keyboardMoveReportRateStats.stability >= 80
-                                    ? 'text-emerald-600 dark:text-emerald-400'
-                                    : keyboardMoveReportRateStats.stability >= 60
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : 'text-rose-600 dark:text-rose-400'
-                                }`}
-                              >
-                                {keyboardMoveReportRateStats.stability}%
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                信号方差 (σ²)
-                              </span>
-                              <span className="font-medium text-sm text-cyan-600 dark:text-cyan-400">
-                                {keyboardMoveReportRateStats.intervalVariance}ms²
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                95分位间隔 (P95)
-                              </span>
-                              <span className="font-medium text-sm text-pink-600 dark:text-pink-400">
-                                {keyboardMoveReportRateStats.p95Interval}ms
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                信号采样总数
-                              </span>
-                              <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
-                                {keyboardMoveReportRateStats.totalEvents}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">
-                                有效采样时长
-                              </span>
-                              <span className="font-medium text-sm text-violet-600 dark:text-violet-400">
-                                {(
-                                  keyboardMoveReportRateStats.testDuration / 1000
-                                ).toFixed(2)}s
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <ReportRateStatsDisplay
+                    title="键盘轮询频率分析"
+                    stats={keyboardMoveReportRateStats}
+                    deviceType="keyboard"
+                  />
                 </div>
               )}
             </CardContent>

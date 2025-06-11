@@ -16,8 +16,6 @@ interface TestAreaProps {
   remainingTime?: number
   onClick?: () => void
   onMouseMove?: (e: React.MouseEvent) => void
-  onFocus?: () => void
-  onBlur?: () => void
   tabIndex?: number
   className?: string
 }
@@ -114,8 +112,6 @@ export function TestArea({
   remainingTime,
   onClick,
   onMouseMove,
-  onFocus,
-  onBlur,
   tabIndex,
   className = ''
 }: TestAreaProps) {
@@ -128,7 +124,10 @@ export function TestArea({
       return config.colors.active
     }
     if (isReady && !isActive && !isOtherTestRunning) {
-      return hasResults ? config.colors.completed : config.colors.ready
+      if (hasResults) {
+        return config.colors.completed
+      }
+      return config.colors.ready
     }
     if (!isReady && !isActive) {
       return config.colors.waiting
@@ -262,8 +261,6 @@ export function TestArea({
       `}
       onClick={onClick}
       onMouseMove={onMouseMove}
-      onFocus={onFocus}
-      onBlur={onBlur}
       tabIndex={tabIndex}
       onContextMenu={(e) => e.preventDefault()}
       onDragStart={(e) => e.preventDefault()}
