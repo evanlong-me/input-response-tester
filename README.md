@@ -127,7 +127,7 @@ src/
 
 如果这个项目对您有帮助，请给一个 ⭐ Star！
 
-[![Star History Chart](https://api.star-history.com/svg?repos=evanlong/input-response-tester&type=Date)](https://www.star-history.com/#evanlong/input-response-tester&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=evanlong-me/input-response-tester&type=Date)](https://www.star-history.com/#evanlong/input-response-tester&Date)
 
 ---
 
