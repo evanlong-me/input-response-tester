@@ -2,8 +2,6 @@
 
 一个用于测试键盘和鼠标输入延迟及回报率的现代化 Web 应用程序。
 
-[!example.png(./public/example.png)]
-
 ![Example](./public/example.png)
 
 ## 功能特性
