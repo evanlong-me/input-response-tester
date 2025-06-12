@@ -334,14 +334,14 @@ export default function Home() {
       <main className="container max-w-6xl mx-auto px-4 py-8 relative z-10">
         {/* Header */}
         <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 text-white">
             HID 设备性能基准测试
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-4">
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto mb-3">
             数据分析级键盘鼠标延迟与回报率测试工具
           </p>
-          <p className="text-lg text-muted-foreground/80 max-w-4xl mx-auto">
-            精确测量鼠标点击延迟、键盘按键延迟、鼠标移动回报率、键盘回报率等关键性能指标，为游戏玩家和数据分析师提供设备性能评估与优化建议
+          <p className="text-sm text-muted-foreground/80 max-w-4xl mx-auto">
+            精确测量鼠标点击延迟、键盘按键延迟、鼠标移动回报率、键盘回报率等关键性能指标，为游戏玩家和数据分析师提供设备性能评估
           </p>
         </header>
 

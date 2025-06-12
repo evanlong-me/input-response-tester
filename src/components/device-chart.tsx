@@ -63,12 +63,12 @@ export const DeviceChart = React.memo(({ testResults, deviceType }: DeviceChartP
   const deviceInfo = useMemo(() => ({
     mouse: {
       icon: Mouse,
-      title: '延迟性能趋势',
+      title: '延迟趋势',
       description: '响应延迟变化趋势'
     },
     keyboard: {
       icon: Keyboard,
-      title: '延迟性能趋势',
+      title: '延迟趋势',
       description: '响应延迟变化趋势'
     }
   }), [])
@@ -160,12 +160,12 @@ export const ReportRateChart = React.memo(({ events, deviceType }: ReportRateCha
   const deviceInfo = useMemo(() => ({
     mouse: {
       icon: MousePointer2,
-      title: '鼠标回报率',
+      title: '回报率趋势',
       description: '回报率变化趋势'
     },
     keyboard: {
       icon: Activity,
-      title: '键盘回报率',
+      title: '回报率趋势',
       description: '回报率变化趋势'
     }
   }), [])

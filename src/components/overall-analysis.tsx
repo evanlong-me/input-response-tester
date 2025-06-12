@@ -69,7 +69,7 @@ export const OverallAnalysis = React.memo(
 
     if (!hasData && !hasReportRateData) {
       return (
-        <Card className="mb-8 border-dashed liquid-3d-border backdrop-blur-xl relative overflow-hidden">
+        <Card className="mb-8 border-dashed backdrop-blur-sm bg-white/10 border border-white/20">
           <CardHeader className="text-center pb-4 relative z-10">
             <CardTitle className="flex items-center justify-center gap-2 text-muted-foreground">
               <Activity className="w-5 h-5" />
@@ -95,13 +95,13 @@ export const OverallAnalysis = React.memo(
     }
 
     return (
-      <Card className="mb-8 liquid-3d-border backdrop-blur-xl relative overflow-hidden">
+      <Card className="mb-8 backdrop-blur-sm bg-white/10 border border-white/20">
         <CardHeader className="pb-6 relative z-10">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Activity className="w-6 h-6 text-blue-500" />
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Activity className="w-5 h-5 text-blue-500" />
             综合测试结果
           </CardTitle>
-          <CardDescription className="text-base">
+          <CardDescription className="text-sm">
             延迟统计和设备对比分析
           </CardDescription>
         </CardHeader>
@@ -109,29 +109,29 @@ export const OverallAnalysis = React.memo(
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* 延迟性能指标 */}
             {hasData && (
-              <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-900/50 dark:to-slate-800/30 rounded-xl p-6 border border-slate-200/50 dark:border-slate-700/50">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-900/50 dark:to-slate-800/30 rounded-xl p-5 border border-slate-200/50 dark:border-slate-700/50">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="font-semibold text-lg">延迟性能指标</h3>
+                  <h3 className="font-semibold text-base">延迟性能</h3>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {mouseStats.count > 0 && (
                     <>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-sm text-muted-foreground font-medium">
-                          鼠标平均延迟
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
+                          鼠标平均
                         </span>
                         <span className="font-bold text-lg text-blue-600 dark:text-blue-400">
                           {mouseStats.avg}ms
                         </span>
                       </div>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-sm text-muted-foreground font-medium">
-                          鼠标最佳延迟
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
+                          鼠标最佳
                         </span>
-                        <span className="font-bold text-lg text-green-600 dark:text-green-400">
+                        <span className="font-semibold text-sm text-green-600 dark:text-green-400">
                           {mouseStats.min}ms
                         </span>
                       </div>
@@ -139,30 +139,30 @@ export const OverallAnalysis = React.memo(
                   )}
                   {keyboardStats.count > 0 && (
                     <>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-sm text-muted-foreground font-medium">
-                          键盘平均延迟
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
+                          键盘平均
                         </span>
                         <span className="font-bold text-lg text-purple-600 dark:text-purple-400">
                           {keyboardStats.avg}ms
                         </span>
                       </div>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-sm text-muted-foreground font-medium">
-                          键盘最佳延迟
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
+                          键盘最佳
                         </span>
-                        <span className="font-bold text-lg text-violet-600 dark:text-violet-400">
+                        <span className="font-semibold text-sm text-violet-600 dark:text-violet-400">
                           {keyboardStats.min}ms
                         </span>
                       </div>
                     </>
                   )}
                   {mouseStats.count > 0 && keyboardStats.count > 0 && (
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-muted-foreground font-medium">
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-slate-700">
+                      <span className="text-xs text-muted-foreground">
                         延迟差异
                       </span>
-                      <span className="font-bold text-lg text-amber-600 dark:text-amber-400">
+                      <span className="font-bold text-base text-amber-600 dark:text-amber-400">
                         {getPerformanceDifference}
                       </span>
                     </div>
@@ -173,29 +173,29 @@ export const OverallAnalysis = React.memo(
 
             {/* 回报率性能指标 */}
             {hasReportRateData && (
-              <div className="bg-gradient-to-br from-purple-50 to-violet-100/50 dark:from-purple-900/20 dark:to-violet-800/10 rounded-xl p-6 border border-purple-200/50 dark:border-purple-700/30">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                    <Radio className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <div className="bg-gradient-to-br from-purple-50 to-violet-100/50 dark:from-purple-900/20 dark:to-violet-800/10 rounded-xl p-5 border border-purple-200/50 dark:border-purple-700/30">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <Radio className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                   </div>
-                  <h3 className="font-semibold text-lg">回报率性能指标</h3>
+                  <h3 className="font-semibold text-base">回报率性能</h3>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {mouseMoveReportRateStats.totalEvents > 0 && (
                     <>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-sm text-muted-foreground font-medium">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
                           鼠标回报率
                         </span>
                         <span className="font-bold text-lg text-blue-600 dark:text-blue-400">
                           {mouseMoveReportRateStats.reportRate}Hz
                         </span>
                       </div>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-sm text-muted-foreground font-medium">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
                           鼠标稳定性
                         </span>
-                        <span className="font-bold text-lg text-green-600 dark:text-green-400">
+                        <span className="font-semibold text-sm text-green-600 dark:text-green-400">
                           {preciseRound(mouseMoveReportRateStats.stability, PRECISION.PERCENTAGE)}%
                         </span>
                       </div>
@@ -203,30 +203,30 @@ export const OverallAnalysis = React.memo(
                   )}
                   {keyboardMoveReportRateStats.totalEvents > 0 && (
                     <>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-sm text-muted-foreground font-medium">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
                           键盘回报率
                         </span>
                         <span className="font-bold text-lg text-purple-600 dark:text-purple-400">
                           {keyboardMoveReportRateStats.reportRate}Hz
                         </span>
                       </div>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-sm text-muted-foreground font-medium">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
                           键盘稳定性
                         </span>
-                        <span className="font-bold text-lg text-violet-600 dark:text-violet-400">
+                        <span className="font-semibold text-sm text-violet-600 dark:text-violet-400">
                           {preciseRound(keyboardMoveReportRateStats.stability, PRECISION.PERCENTAGE)}%
                         </span>
                       </div>
                     </>
                   )}
                   {mouseMoveReportRateStats.totalEvents > 0 && keyboardMoveReportRateStats.totalEvents > 0 && (
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-muted-foreground font-medium">
+                    <div className="flex justify-between items-center pt-2 border-t border-purple-200 dark:border-purple-700">
+                      <span className="text-xs text-muted-foreground">
                         回报率差异
                       </span>
-                      <span className="font-bold text-lg text-amber-600 dark:text-amber-400">
+                      <span className="font-bold text-base text-amber-600 dark:text-amber-400">
                         {getReportRateDifference}
                       </span>
                     </div>
@@ -237,30 +237,30 @@ export const OverallAnalysis = React.memo(
 
             {/* 设备对比分析 */}
             {(hasData || hasReportRateData) && (
-              <div className="bg-gradient-to-br from-emerald-50 to-teal-100/50 dark:from-emerald-900/20 dark:to-teal-800/10 rounded-xl p-6 border border-emerald-200/50 dark:border-emerald-700/30">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
-                    <BarChart3 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-100/50 dark:from-emerald-900/20 dark:to-teal-800/10 rounded-xl p-5 border border-emerald-200/50 dark:border-emerald-700/30">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                    <BarChart3 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  <h3 className="font-semibold text-lg">设备对比分析</h3>
+                  <h3 className="font-semibold text-base">设备对比</h3>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {/* 鼠标综合性能 */}
                   {(mouseStats.count > 0 || mouseMoveReportRateStats.totalEvents > 0) && (
                     <>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-sm text-muted-foreground font-medium">
-                          鼠标延迟性能
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
+                          鼠标延迟
                         </span>
-                        <span className="font-bold text-lg text-blue-600 dark:text-blue-400">
+                        <span className="font-semibold text-sm text-blue-600 dark:text-blue-400">
                           {mouseStats.count > 0 ? `${mouseStats.avg}ms` : '未测试'}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-sm text-muted-foreground font-medium">
-                          鼠标回报率性能
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
+                          鼠标回报率
                         </span>
-                        <span className="font-bold text-lg text-blue-600 dark:text-blue-400">
+                        <span className="font-semibold text-sm text-blue-600 dark:text-blue-400">
                           {mouseMoveReportRateStats.totalEvents > 0 ? `${mouseMoveReportRateStats.reportRate}Hz` : '未测试'}
                         </span>
                       </div>
@@ -269,19 +269,19 @@ export const OverallAnalysis = React.memo(
                   {/* 键盘综合性能 */}
                   {(keyboardStats.count > 0 || keyboardMoveReportRateStats.totalEvents > 0) && (
                     <>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-sm text-muted-foreground font-medium">
-                          键盘延迟性能
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
+                          键盘延迟
                         </span>
-                        <span className="font-bold text-lg text-purple-600 dark:text-purple-400">
+                        <span className="font-semibold text-sm text-purple-600 dark:text-purple-400">
                           {keyboardStats.count > 0 ? `${keyboardStats.avg}ms` : '未测试'}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-sm text-muted-foreground font-medium">
-                          键盘回报率性能
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
+                          键盘回报率
                         </span>
-                        <span className="font-bold text-lg text-purple-600 dark:text-purple-400">
+                        <span className="font-semibold text-sm text-purple-600 dark:text-purple-400">
                           {keyboardMoveReportRateStats.totalEvents > 0 ? `${keyboardMoveReportRateStats.reportRate}Hz` : '未测试'}
                         </span>
                       </div>
@@ -289,26 +289,26 @@ export const OverallAnalysis = React.memo(
                   )}
                   {/* 性能差异对比 */}
                   {mouseStats.count > 0 && keyboardStats.count > 0 && (
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-muted-foreground font-medium">
-                        延迟优势设备
+                    <div className="flex justify-between items-center pt-2 border-t border-emerald-200 dark:border-emerald-700">
+                      <span className="text-xs text-muted-foreground">
+                        延迟优势
                       </span>
                       <div
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${
+                        className={`flex items-center gap-1 px-2 py-1 rounded-md ${
                           mouseStats.avg < keyboardStats.avg
                             ? 'bg-blue-100 dark:bg-blue-900/30'
                             : 'bg-purple-100 dark:bg-purple-900/30'
                         }`}
                       >
                         <Zap
-                          className={`w-4 h-4 ${
+                          className={`w-3 h-3 ${
                             mouseStats.avg < keyboardStats.avg
                               ? 'text-blue-600 dark:text-blue-400'
                               : 'text-purple-600 dark:text-purple-400'
                           }`}
                         />
                         <span
-                          className={`font-bold text-sm ${
+                          className={`font-semibold text-xs ${
                             mouseStats.avg < keyboardStats.avg
                               ? 'text-blue-600 dark:text-blue-400'
                               : 'text-purple-600 dark:text-purple-400'

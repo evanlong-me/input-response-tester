@@ -57,7 +57,7 @@ export const PerformanceStats = React.memo(({
   const renderResponseStats = useMemo(() => {
     if (stats.count === 0) {
       return (
-        <div className="flex items-center justify-center h-32 text-muted-foreground">
+        <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
           暂无测试数据
         </div>
       )
@@ -67,42 +67,44 @@ export const PerformanceStats = React.memo(({
     if (!advanced) return null
 
     return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
-            <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">平均延迟</p>
-            <p className="text-lg font-bold text-blue-700 dark:text-blue-300">{stats.avg}ms</p>
+      <div className="space-y-5">
+        {/* 主要指标 - 大字体突出显示 */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+            <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">平均延迟</p>
+            <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{stats.avg}ms</p>
           </div>
-          <div className="bg-green-50 dark:bg-green-950/20 p-3 rounded-lg">
-            <p className="text-sm text-green-600 dark:text-green-400 font-medium">最佳延迟</p>
-            <p className="text-lg font-bold text-green-700 dark:text-green-300">{stats.min}ms</p>
+          <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
+            <p className="text-xs text-green-600 dark:text-green-400 font-medium mb-1">最佳延迟</p>
+            <p className="text-2xl font-bold text-green-700 dark:text-green-300">{stats.min}ms</p>
           </div>
-          <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg">
-            <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">最差延迟</p>
-            <p className="text-lg font-bold text-amber-700 dark:text-amber-300">{stats.max}ms</p>
+          <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg">
+            <p className="text-xs text-amber-600 dark:text-amber-400 font-medium mb-1">最差延迟</p>
+            <p className="text-xl font-bold text-amber-700 dark:text-amber-300">{stats.max}ms</p>
           </div>
-          <div className="bg-purple-50 dark:bg-purple-950/20 p-3 rounded-lg">
-            <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">中位数</p>
-            <p className="text-lg font-bold text-purple-700 dark:text-purple-300">{advanced.median}ms</p>
+          <div className="bg-purple-50 dark:bg-purple-950/20 p-4 rounded-lg">
+            <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-1">中位数</p>
+            <p className="text-xl font-bold text-purple-700 dark:text-purple-300">{advanced.median}ms</p>
           </div>
         </div>
         
-        <div className="grid grid-cols-1 gap-3">
-          <div className="flex justify-between items-center py-2 border-b border-border">
-            <span className="text-sm text-muted-foreground">标准差</span>
-            <span className="text-base font-semibold text-orange-600 dark:text-orange-400">{advanced.stdDev}ms</span>
+        {/* 次要指标 - 较小字体，简洁布局 */}
+        <div className="space-y-2">
+          <div className="flex justify-between items-center py-1.5">
+            <span className="text-xs text-muted-foreground">标准差</span>
+            <span className="text-sm font-semibold text-orange-600 dark:text-orange-400">{advanced.stdDev}ms</span>
           </div>
-          <div className="flex justify-between items-center py-2 border-b border-border">
-            <span className="text-sm text-muted-foreground">变异系数</span>
-            <span className="text-base font-semibold text-rose-600 dark:text-rose-400">{advanced.coefficientOfVariation}%</span>
+          <div className="flex justify-between items-center py-1.5">
+            <span className="text-xs text-muted-foreground">变异系数</span>
+            <span className="text-sm font-semibold text-rose-600 dark:text-rose-400">{advanced.coefficientOfVariation}%</span>
           </div>
-          <div className="flex justify-between items-center py-2 border-b border-border">
-            <span className="text-sm text-muted-foreground">95分位数</span>
-            <span className="text-base font-semibold text-violet-600 dark:text-violet-400">{advanced.p95}ms</span>
+          <div className="flex justify-between items-center py-1.5">
+            <span className="text-xs text-muted-foreground">95分位数</span>
+            <span className="text-sm font-semibold text-violet-600 dark:text-violet-400">{advanced.p95}ms</span>
           </div>
-          <div className="flex justify-between items-center py-2">
-            <span className="text-sm text-muted-foreground">99分位数</span>
-            <span className="text-base font-semibold text-pink-600 dark:text-pink-400">{advanced.p99}ms</span>
+          <div className="flex justify-between items-center py-1.5">
+            <span className="text-xs text-muted-foreground">99分位数</span>
+            <span className="text-sm font-semibold text-pink-600 dark:text-pink-400">{advanced.p99}ms</span>
           </div>
         </div>
       </div>
@@ -110,10 +112,10 @@ export const PerformanceStats = React.memo(({
   }, [stats, testResults, advancedStats])
 
   return (
-    <div className="flex flex-col h-full space-y-3">
+    <div className="flex flex-col h-full space-y-4">
       <div className="flex items-center gap-2">
         <BarChart3 className="w-4 h-4" />
-        <h4 className="font-medium">{title}</h4>
+        <h4 className="text-sm font-medium">{title}</h4>
       </div>
       <div className="flex-1">
         {renderResponseStats}

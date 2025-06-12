@@ -72,7 +72,7 @@ export const ReportRateTestSection = React.memo(({
   deviceType
 }: ReportRateTestSectionProps) => (
   <div className="mb-8">
-    <Card className="liquid-3d-border backdrop-blur-xl relative overflow-hidden">
+    <Card className="backdrop-blur-sm bg-white/10 border border-white/20">
       <CardHeader className="relative z-10">
         <CardTitle className="flex items-center gap-2">
           <Icon className="w-5 h-5" />
