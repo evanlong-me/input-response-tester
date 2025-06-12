@@ -315,10 +315,10 @@ export default function Home() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-            HID 设备性能基准测试平台
+            HID 设备性能基准测试
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            高精度人机接口设备延迟分析与回报率测量系统，提供微秒级时序分析、统计学建模和性能基准评估
+            键盘和鼠标延迟与回报率测试工具
           </p>
         </div>
 
@@ -328,10 +328,10 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Mouse className="w-5 h-5" />
-                鼠标延迟响应性能测试
+                鼠标延迟测试
               </CardTitle>
               <CardDescription>
-                基于刺激-响应模型的鼠标点击延迟测量，采用高精度时间戳记录，分析输入延迟分布特征与系统响应性能
+                测量鼠标点击延迟，分析响应时间
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -387,7 +387,7 @@ export default function Home() {
                   {/* 鼠标性能统计 */}
                   <PerformanceStats
                     type="response"
-                    title="鼠标性能分析"
+                    title="鼠标延迟统计"
                     stats={mouseStats}
                     testResults={testResults.filter((r) => r.testType === 'mouse')}
                   />
@@ -403,10 +403,10 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MousePointer2 className="w-5 h-5" />
-                鼠标轮询频率与时序精度测试
+                鼠标回报率测试
               </CardTitle>
               <CardDescription>
-                通过连续鼠标移动事件采样分析设备轮询频率、时序抖动和频率稳定性，评估鼠标传感器与驱动程序性能
+                测量鼠标移动事件的回报率和稳定性
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -444,7 +444,7 @@ export default function Home() {
                   isActive={isMouseMoveTesting}
                   isDisabled={isMouseTesting || isKeyboardTesting || isKeyboardReportRateTesting}
                   onRestart={handleMouseMoveTestStart}
-                  buttonText={isMouseMoveTesting ? '测试进行中...' : '开始新的晃动测试'}
+                  buttonText={isMouseMoveTesting ? '测试进行中...' : '重新测试回报率'}
                 />
               )}
 
@@ -461,7 +461,7 @@ export default function Home() {
 
                   {/* 鼠标晃动回报率统计 */}
                   <ReportRateStatsDisplay
-                    title="鼠标晃动回报率分析"
+                    title="鼠标回报率统计"
                     stats={mouseMoveReportRateStats}
                     deviceType="mouse"
                   />
@@ -477,10 +477,10 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Keyboard className="w-5 h-5" />
-                键盘延迟响应性能测试
+                键盘延迟测试
               </CardTitle>
               <CardDescription>
-                基于刺激-响应模型的键盘按键延迟测量，采用高精度时间戳记录，分析输入延迟分布特征与系统响应性能
+                测量键盘按键延迟，分析响应时间
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -536,7 +536,7 @@ export default function Home() {
                   {/* 键盘性能统计 */}
                   <PerformanceStats
                     type="response"
-                    title="键盘性能分析"
+                    title="键盘延迟统计"
                     stats={keyboardStats}
                     testResults={testResults.filter((r) => r.testType === 'keyboard')}
                   />
@@ -552,10 +552,10 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Keyboard className="w-5 h-5" />
-                键盘轮询频率与信号完整性测试
+                键盘回报率测试
               </CardTitle>
               <CardDescription>
-                通过连续按键事件序列分析键盘轮询频率、信号时序稳定性和数据传输完整性，评估键盘控制器性能
+                测量键盘按键事件的回报率和稳定性
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -593,7 +593,7 @@ export default function Home() {
                   isActive={isKeyboardReportRateTesting}
                   isDisabled={isMouseTesting || isKeyboardTesting || isMouseMoveTesting || isKeyboardReportRateTesting}
                   onRestart={handleKeyboardReportRateTestStart}
-                  buttonText={isKeyboardReportRateTesting ? '信号采样进行中...' : '开始新的轮询频率测试'}
+                  buttonText={isKeyboardReportRateTesting ? '测试进行中...' : '重新测试回报率'}
                 />
               )}
 
@@ -610,7 +610,7 @@ export default function Home() {
 
                   {/* 键盘回报率统计 */}
                   <ReportRateStatsDisplay
-                    title="键盘轮询频率分析"
+                    title="键盘回报率统计"
                     stats={keyboardMoveReportRateStats}
                     deviceType="keyboard"
                   />
@@ -626,7 +626,6 @@ export default function Home() {
           mouseStats={mouseStats}
           keyboardStats={keyboardStats}
           overallAdvancedStats={overallAdvancedStats}
-          maxTestCount={MAX_TEST_COUNT}
         />
 
         {/* Instructions */}

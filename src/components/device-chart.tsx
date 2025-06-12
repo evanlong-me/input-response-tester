@@ -151,13 +151,13 @@ export function ReportRateChart({ events, deviceType }: ReportRateChartProps) {
   const deviceInfo = {
     mouse: {
       icon: MousePointer2,
-      title: '鼠标回报率趋势',
-      description: '移动事件回报率变化'
+      title: '鼠标回报率',
+      description: '回报率变化趋势'
     },
     keyboard: {
       icon: Activity,
-      title: '键盘回报率趋势',
-      description: '按键事件回报率变化'
+      title: '键盘回报率',
+      description: '回报率变化趋势'
     }
   }
 

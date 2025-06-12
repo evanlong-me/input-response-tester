@@ -40,15 +40,13 @@ interface OverallAnalysisProps {
   mouseStats: Stats
   keyboardStats: Stats
   overallAdvancedStats: AdvancedStats
-  maxTestCount: number
 }
 
 export function OverallAnalysis({
   overallStats,
   mouseStats,
   keyboardStats,
-  overallAdvancedStats,
-  maxTestCount
+  overallAdvancedStats
 }: OverallAnalysisProps) {
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-emerald-600 dark:text-emerald-400'
@@ -65,15 +63,6 @@ export function OverallAnalysis({
     )
   }
 
-  const getBetterDevice = () => {
-    if (mouseStats.avg && keyboardStats.avg) {
-      return mouseStats.avg < keyboardStats.avg ? '鼠标' : '键盘'
-    }
-    if (mouseStats.avg) return '鼠标'
-    if (keyboardStats.avg) return '键盘'
-    return '暂无数据'
-  }
-
   const getPerformanceDifference = () => {
     if (mouseStats.avg && keyboardStats.avg) {
       return `${Math.abs(mouseStats.avg - keyboardStats.avg)}ms`
@@ -81,33 +70,29 @@ export function OverallAnalysis({
     return '暂无数据'
   }
 
-  const getTestCompleteness = () => {
-    return Math.round((overallStats.count / (maxTestCount * 2)) * 100)
-  }
-
   return (
     <Card className="mb-8">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Activity className="w-5 h-5" />
-          综合性能分析报告
+          综合测试结果
         </CardTitle>
         <CardDescription>
-          基于所有测试数据的深度性能分析，包含延迟统计、稳定性评估和设备对比
+          延迟统计和设备对比
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* 性能指标 */}
+          {/* 基础指标 */}
           <div className="bg-muted/30 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <Target className="w-4 h-4 text-blue-500" />
-              <h4 className="font-medium">性能指标</h4>
+              <h4 className="font-medium">基础指标</h4>
             </div>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  综合平均延迟
+                  平均延迟
                 </span>
                 <span className="font-medium text-sm text-blue-600 dark:text-blue-400">
                   {overallStats.avg}ms
@@ -115,7 +100,7 @@ export function OverallAnalysis({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  最佳响应时间
+                  最小延迟
                 </span>
                 <span className="font-medium text-sm text-emerald-600 dark:text-emerald-400">
                   {overallStats.min}ms
@@ -123,7 +108,7 @@ export function OverallAnalysis({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  最差响应时间
+                  最大延迟
                 </span>
                 <span className="font-medium text-sm text-orange-600 dark:text-orange-400">
                   {overallStats.max}ms
@@ -131,33 +116,25 @@ export function OverallAnalysis({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  总测试样本
+                  测试次数
                 </span>
                 <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
                   {overallStats.count}次
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  延迟范围
-                </span>
-                <span className="font-medium text-sm text-violet-600 dark:text-violet-400">
-                  {overallStats.max - overallStats.min}ms
-                </span>
-              </div>
             </div>
           </div>
 
-          {/* 高级分析指标 */}
+          {/* 稳定性指标 */}
           <div className="bg-muted/30 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="w-4 h-4 text-green-500" />
-              <h4 className="font-medium">高级分析指标</h4>
+              <h4 className="font-medium">稳定性指标</h4>
             </div>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  系统稳定性
+                  稳定性
                 </span>
                 <span className={`font-medium text-sm ${getScoreColor(overallAdvancedStats.stability)}`}>
                   {overallAdvancedStats.stability}%
@@ -165,7 +142,7 @@ export function OverallAnalysis({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  响应一致性
+                  一致性
                 </span>
                 <span className={`font-medium text-sm ${getScoreColor(overallAdvancedStats.consistency)}`}>
                   {overallAdvancedStats.consistency}%
@@ -173,23 +150,7 @@ export function OverallAnalysis({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  性能评分
-                </span>
-                <span className={`font-medium text-sm ${getScoreColor(overallAdvancedStats.performance)}`}>
-                  {overallAdvancedStats.performance}%
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  数据可靠性
-                </span>
-                <span className={`font-medium text-sm ${getScoreColor(overallAdvancedStats.reliability)}`}>
-                  {overallAdvancedStats.reliability}%
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  综合评级
+                  综合评分
                 </span>
                 <span className={`font-medium text-sm ${getScoreColor(getOverallScore())}`}>
                   {getOverallScore()}%
@@ -198,16 +159,16 @@ export function OverallAnalysis({
             </div>
           </div>
 
-          {/* 设备对比分析 */}
+          {/* 设备对比 */}
           <div className="bg-muted/30 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 className="w-4 h-4 text-purple-500" />
-              <h4 className="font-medium">设备对比分析</h4>
+              <h4 className="font-medium">设备对比</h4>
             </div>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  鼠标平均延迟
+                  鼠标延迟
                 </span>
                 <span className="font-medium text-sm text-blue-600 dark:text-blue-400">
                   {mouseStats.avg || 0}ms
@@ -215,7 +176,7 @@ export function OverallAnalysis({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  键盘平均延迟
+                  键盘延迟
                 </span>
                 <span className="font-medium text-sm text-indigo-600 dark:text-indigo-400">
                   {keyboardStats.avg || 0}ms
@@ -223,26 +184,10 @@ export function OverallAnalysis({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  性能差异
+                  延迟差异
                 </span>
                 <span className="font-medium text-sm text-violet-600 dark:text-violet-400">
                   {getPerformanceDifference()}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  更优设备
-                </span>
-                <span className="font-medium text-sm text-emerald-600 dark:text-emerald-400">
-                  {getBetterDevice()}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  测试完成度
-                </span>
-                <span className="font-medium text-sm text-teal-600 dark:text-teal-400">
-                  {getTestCompleteness()}%
                 </span>
               </div>
             </div>

@@ -20,10 +20,10 @@ export function Instructions() {
             <h4 className="font-medium mb-2">🖱️ 鼠标测试</h4>
             <div className="text-sm text-muted-foreground space-y-2">
               <p>
-                <strong>延迟测试：</strong>点击测试区域，快速连续点击20次
+                <strong>延迟测试：</strong>连续点击20次测量延迟
               </p>
               <p>
-                <strong>回报率测试：</strong>点击测试区域，快速晃动鼠标5秒
+                <strong>回报率测试：</strong>晃动鼠标5秒测量回报率
               </p>
             </div>
           </div>
@@ -31,12 +31,10 @@ export function Instructions() {
             <h4 className="font-medium mb-2">⌨️ 键盘测试</h4>
             <div className="text-sm text-muted-foreground space-y-2">
               <p>
-                <strong>延迟测试：</strong>
-                点击测试区域获得焦点，快速连续按键20次
+                <strong>延迟测试：</strong>连续按键20次测量延迟
               </p>
               <p>
-                <strong>回报率测试：</strong>
-                点击测试区域获得焦点，连续按键5秒
+                <strong>回报率测试：</strong>连续按键5秒测量回报率
               </p>
             </div>
           </div>
@@ -44,11 +42,10 @@ export function Instructions() {
         <div className="pt-4 border-t">
           <h4 className="font-medium mb-2">💡 注意事项</h4>
           <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-            <li>测试时保持专注，看到提示后快速响应</li>
-            <li>每次重新测试会清除之前的数据</li>
-            <li>有线连接通常比无线连接性能更好</li>
-            <li>测试结果可能受系统负载影响</li>
-            <li>建议多次测试获得更准确的结果</li>
+            <li>看到提示后快速响应</li>
+            <li>重新测试会清除之前数据</li>
+            <li>有线连接性能通常更好</li>
+            <li>建议多次测试获得准确结果</li>
           </ul>
         </div>
       </CardContent>

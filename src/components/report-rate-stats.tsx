@@ -35,18 +35,12 @@ export function ReportRateStatsDisplay({ title, stats, deviceType }: ReportRateS
 
   const deviceLabels = {
     mouse: {
-      frequency: '轮询频率',
-      interval: '采样间隔',
-      events: '移动事件',
-      precision: '时序精度',
-      variance: '间隔方差'
+      frequency: '回报率',
+      events: '移动事件'
     },
     keyboard: {
-      frequency: '轮询频率',
-      interval: '信号间隔',
-      events: '按键信号',
-      precision: '时序精度',
-      variance: '信号方差'
+      frequency: '回报率',
+      events: '按键事件'
     }
   }
 
@@ -87,7 +81,7 @@ export function ReportRateStatsDisplay({ title, stats, deviceType }: ReportRateS
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  峰值频率 (Max)
+                  最大{labels.frequency}
                 </span>
                 <span className="font-medium text-sm text-emerald-600 dark:text-emerald-400">
                   {stats.maxReportRate}Hz
@@ -95,38 +89,22 @@ export function ReportRateStatsDisplay({ title, stats, deviceType }: ReportRateS
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  最低频率 (Min)
+                  最小{labels.frequency}
                 </span>
                 <span className="font-medium text-sm text-orange-600 dark:text-orange-400">
                   {stats.minReportRate}Hz
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  平均{labels.interval}
-                </span>
-                <span className="font-medium text-sm text-blue-600 dark:text-blue-400">
-                  {stats.averageInterval}ms
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  中位数间隔
-                </span>
-                <span className="font-medium text-sm text-teal-600 dark:text-teal-400">
-                  {stats.medianInterval}ms
                 </span>
               </div>
             </div>
           </div>
           <div className="space-y-3">
             <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
-              {deviceType === 'mouse' ? '时序稳定性指标' : '信号完整性指标'}
+              稳定性指标
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  时序抖动 (Jitter)
+                  抖动
                 </span>
                 <span className="font-medium text-sm text-amber-600 dark:text-amber-400">
                   {stats.jitter}ms
@@ -134,23 +112,7 @@ export function ReportRateStatsDisplay({ title, stats, deviceType }: ReportRateS
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  {labels.precision}评分
-                </span>
-                <span className={`font-medium text-sm ${getScoreColor(stats.temporalPrecision)}`}>
-                  {stats.temporalPrecision}%
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  频率稳定性评分
-                </span>
-                <span className={`font-medium text-sm ${getScoreColor(stats.frequencyStability)}`}>
-                  {stats.frequencyStability}%
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  综合稳定性评分
+                  稳定性评分
                 </span>
                 <span className={`font-medium text-sm ${getScoreColor(stats.stability)}`}>
                   {stats.stability}%
@@ -158,34 +120,10 @@ export function ReportRateStatsDisplay({ title, stats, deviceType }: ReportRateS
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  {labels.variance} (σ²)
-                </span>
-                <span className="font-medium text-sm text-cyan-600 dark:text-cyan-400">
-                  {stats.intervalVariance}ms²
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  95分位间隔 (P95)
-                </span>
-                <span className="font-medium text-sm text-pink-600 dark:text-pink-400">
-                  {stats.p95Interval}ms
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  {deviceType === 'mouse' ? '采样事件总数' : '信号采样总数'}
+                  {labels.events}总数
                 </span>
                 <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
                   {stats.totalEvents}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  有效{deviceType === 'mouse' ? '测试' : '采样'}时长
-                </span>
-                <span className="font-medium text-sm text-violet-600 dark:text-violet-400">
-                  {(stats.testDuration / 1000).toFixed(2)}s
                 </span>
               </div>
             </div>

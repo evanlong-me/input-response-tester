@@ -24,14 +24,14 @@ const testConfig = {
   mouse: {
     icon: Mouse,
     activeIcon: Zap,
-    title: '点击此区域开始鼠标测试',
-    subtitle: '将进行20次连续延迟测试',
-    activeTitle: '请快速点击此区域！',
-    completedTitle: '鼠标测试已完成',
-    completedSubtitle: '点击下方按钮开始新的测试',
-    waitingTitle: '准备下次测试中...',
-    waitingSubtitle: '请稍等片刻',
-    otherTestMessage: '键盘测试进行中',
+    title: '点击开始鼠标延迟测试',
+    subtitle: '连续点击20次测量延迟',
+    activeTitle: '请快速点击！',
+    completedTitle: '鼠标测试完成',
+    completedSubtitle: '点击下方按钮重新测试',
+    waitingTitle: '准备中...',
+    waitingSubtitle: '请稍等',
+    otherTestMessage: '其他测试进行中',
     colors: {
       active: 'border-green-400 bg-green-50/50 dark:bg-green-950/10 animate-pulse cursor-pointer',
       ready: 'border-blue-400 bg-blue-50/50 dark:bg-blue-950/10 cursor-pointer hover:bg-blue-100/50 dark:hover:bg-blue-900/20',
@@ -43,14 +43,14 @@ const testConfig = {
   keyboard: {
     icon: Keyboard,
     activeIcon: Zap,
-    title: '点击此区域开始键盘测试',
-    subtitle: '将进行20次连续延迟测试',
-    activeTitle: '请快速按任意键！',
-    completedTitle: '键盘测试已完成',
-    completedSubtitle: '点击下方按钮开始新的测试',
-    waitingTitle: '准备下次测试中...',
-    waitingSubtitle: '请稍等片刻',
-    otherTestMessage: '鼠标测试进行中',
+    title: '点击开始键盘延迟测试',
+    subtitle: '连续按键20次测量延迟',
+    activeTitle: '请快速按键！',
+    completedTitle: '键盘测试完成',
+    completedSubtitle: '点击下方按钮重新测试',
+    waitingTitle: '准备中...',
+    waitingSubtitle: '请稍等',
+    otherTestMessage: '其他测试进行中',
     colors: {
       active: 'border-green-400 bg-green-50/50 dark:bg-green-950/10 animate-pulse cursor-pointer',
       ready: 'border-blue-400 bg-blue-50/50 dark:bg-blue-950/10 cursor-pointer hover:bg-blue-100/50 dark:hover:bg-blue-900/20',
@@ -62,13 +62,13 @@ const testConfig = {
   'mouse-move': {
     icon: MousePointer2,
     activeIcon: MousePointer2,
-    title: '点击此区域开始鼠标晃动测试',
-    subtitle: '将进行5秒钟的鼠标移动监测',
-    activeTitle: '请在此区域内快速晃动鼠标！',
-    completedTitle: '鼠标晃动测试已完成',
-    completedSubtitle: '点击下方按钮开始新的测试',
-    waitingTitle: '准备下次测试中...',
-    waitingSubtitle: '请稍等片刻',
+    title: '点击开始鼠标回报率测试',
+    subtitle: '晃动鼠标5秒测量回报率',
+    activeTitle: '请快速晃动鼠标！',
+    completedTitle: '鼠标回报率测试完成',
+    completedSubtitle: '点击下方按钮重新测试',
+    waitingTitle: '准备中...',
+    waitingSubtitle: '请稍等',
     otherTestMessage: '其他测试进行中',
     colors: {
       active: 'border-purple-400 bg-purple-50/50 dark:bg-purple-950/10 animate-pulse cursor-crosshair',
@@ -81,13 +81,13 @@ const testConfig = {
   'keyboard-report-rate': {
     icon: Keyboard,
     activeIcon: Keyboard,
-    title: '点击此区域开始键盘轮询频率测试',
-    subtitle: '将进行5秒钟的按键信号采样',
-    activeTitle: '请保持连续按键输入！',
-    completedTitle: '键盘轮询频率测试已完成',
-    completedSubtitle: '点击下方按钮开始新的测试',
-    waitingTitle: '准备下次测试中...',
-    waitingSubtitle: '请稍等片刻',
+    title: '点击开始键盘回报率测试',
+    subtitle: '连续按键5秒测量回报率',
+    activeTitle: '请连续按键！',
+    completedTitle: '键盘回报率测试完成',
+    completedSubtitle: '点击下方按钮重新测试',
+    waitingTitle: '准备中...',
+    waitingSubtitle: '请稍等',
     otherTestMessage: '其他测试进行中',
     colors: {
       active: 'border-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/10 animate-pulse',
@@ -158,8 +158,8 @@ export function TestArea({
             <>
               <p className="text-xs text-muted-foreground mt-1">
                 {testType === 'mouse-move' 
-                  ? `已捕获 ${totalEvents || 0} 个移动事件`
-                  : `已采样 ${totalEvents || 0} 个按键信号`
+                  ? `已记录 ${totalEvents || 0} 个事件`
+                  : `已记录 ${totalEvents || 0} 个事件`
                 }
               </p>
               {remainingTime !== undefined && (
@@ -184,12 +184,12 @@ export function TestArea({
                 {config.completedTitle}
               </p>
               {(testType === 'mouse-move' || testType === 'keyboard-report-rate') && totalEvents && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  {testType === 'mouse-move' 
-                    ? `捕获了 ${totalEvents} 个移动事件`
-                    : `采样了 ${totalEvents} 个按键信号`
-                  }
-                </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                {testType === 'mouse-move' 
+                  ? `记录了 ${totalEvents} 个事件`
+                  : `记录了 ${totalEvents} 个事件`
+                }
+              </p>
               )}
               <p className="text-xs text-muted-foreground mt-1">
                 {config.completedSubtitle}
