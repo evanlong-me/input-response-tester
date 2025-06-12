@@ -123,6 +123,9 @@ src/
 - 📱 **响应式**：支持各种设备和屏幕尺寸
 - 🔍 **详细统计**：提供平均值、标准差、最值等详细数据
 
+
+如果这个项目对您有帮助，请给一个 ⭐ Star！
+
 [![Star History Chart](https://api.star-history.com/svg?repos=evanlong-me/input-response-tester&type=Date)](https://www.star-history.com/#evanlong-me/input-response-tester&Date)
 
 ---
