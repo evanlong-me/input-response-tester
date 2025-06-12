@@ -70,13 +70,6 @@ export const OverallAnalysis = React.memo(
     if (!hasData && !hasReportRateData) {
       return (
         <Card className="mb-8 border-dashed backdrop-blur-sm bg-white/10 border border-white/20">
-          <CardHeader className="text-center pb-4 relative z-10">
-            <CardTitle className="flex items-center justify-center gap-2 text-muted-foreground">
-              <Activity className="w-5 h-5" />
-              综合测试结果
-            </CardTitle>
-            <CardDescription>延迟统计和设备对比</CardDescription>
-          </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-center py-12">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/30 flex items-center justify-center">
