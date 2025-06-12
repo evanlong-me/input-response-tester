@@ -114,7 +114,7 @@ export const OverallAnalysis = React.memo(
                   <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                     <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h4 className="font-semibold text-lg">延迟性能指标</h4>
+                  <h3 className="font-semibold text-lg">延迟性能指标</h3>
                 </div>
                 <div className="space-y-4">
                   {mouseStats.count > 0 && (
@@ -178,7 +178,7 @@ export const OverallAnalysis = React.memo(
                   <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                     <Radio className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                   </div>
-                  <h4 className="font-semibold text-lg">回报率性能指标</h4>
+                  <h3 className="font-semibold text-lg">回报率性能指标</h3>
                 </div>
                 <div className="space-y-4">
                   {mouseMoveReportRateStats.totalEvents > 0 && (
@@ -242,7 +242,7 @@ export const OverallAnalysis = React.memo(
                   <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
                     <BarChart3 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  <h4 className="font-semibold text-lg">设备对比分析</h4>
+                  <h3 className="font-semibold text-lg">设备对比分析</h3>
                 </div>
                 <div className="space-y-4">
                   {/* 鼠标综合性能 */}

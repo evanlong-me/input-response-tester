@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# 主要页面
+Allow: /
+Allow: /api/
+
+# 静态资源
+Allow: /_next/static/
+Allow: /favicon.ico
+Allow: /icon.svg
+Allow: /apple-touch-icon.png
+Allow: /og-image.png
+Allow: /manifest.json
+
+# 网站地图
+Sitemap: https://input-response-tester.vercel.app/sitemap.xml
+
+# 爬虫延迟
+Crawl-delay: 1 
