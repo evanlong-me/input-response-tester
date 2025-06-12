@@ -26,7 +26,8 @@ import { ReportRateStatsDisplay } from '@/components/report-rate-stats'
 import {
   calculateStats,
   calculateAdvancedStats,
-  calculateMouseMoveReportRate
+  calculateMouseMoveReportRate,
+  calculateKeyboardReportRate
 } from '@/lib/stats-utils'
 
 interface TestResult {
@@ -42,7 +43,9 @@ interface MouseMoveEvent {
   y: number
 }
 
-const MAX_TEST_COUNT = 20 // 统一测试次数
+// 数据分析测试次数设置
+const MOUSE_TEST_COUNT = 30 // 鼠标延迟测试次数
+const KEYBOARD_TEST_COUNT = 50 // 键盘延迟测试次数
 const MOUSE_MOVE_TEST_DURATION = 5000 // 鼠标晃动测试持续时间（毫秒）
 
 export default function Home() {
@@ -76,6 +79,10 @@ export default function Home() {
     useState(true)
   const [keyboardReportRateTestProgress, setKeyboardReportRateTestProgress] =
     useState(0)
+
+  // 存储计时器引用，用于清理
+  const [mouseProgressTimer, setMouseProgressTimer] = useState<NodeJS.Timeout | null>(null)
+  const [keyboardProgressTimer, setKeyboardProgressTimer] = useState<NodeJS.Timeout | null>(null)
 
 
 
@@ -115,25 +122,35 @@ export default function Home() {
     setMouseMoveTestReady(false)
     setMouseMoveTestProgress(0)
 
-    // 开始进度计时
-    const startTime = Date.now()
-    const progressInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime
+    // 清理之前的计时器
+    if (mouseProgressTimer) {
+      clearInterval(mouseProgressTimer)
+    }
+
+    // 使用独立的计时器，不受用户操作影响
+    const startTime = performance.now()
+    
+    const progressTimer = setInterval(() => {
+      const elapsed = performance.now() - startTime
       const progress = Math.min((elapsed / MOUSE_MOVE_TEST_DURATION) * 100, 100)
       setMouseMoveTestProgress(progress)
 
       if (elapsed >= MOUSE_MOVE_TEST_DURATION) {
-        clearInterval(progressInterval)
+        clearInterval(progressTimer)
+        setMouseProgressTimer(null)
         setIsMouseMoveTesting(false)
         setMouseMoveTestReady(true)
         setMouseMoveTestProgress(100)
       }
-    }, 50)
+    }, 500) // 每500ms更新一次，让组件动画处理平滑过渡
+    
+    setMouseProgressTimer(progressTimer)
   }, [
     isMouseTesting,
     isKeyboardTesting,
     isMouseMoveTesting,
-    isKeyboardReportRateTesting
+    isKeyboardReportRateTesting,
+    mouseProgressTimer
   ])
 
   // 重新开始键盘测试
@@ -166,25 +183,35 @@ export default function Home() {
     setKeyboardReportRateTestReady(false)
     setKeyboardReportRateTestProgress(0)
 
-    // 开始进度计时
-    const startTime = Date.now()
-    const progressInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime
+    // 清理之前的计时器
+    if (keyboardProgressTimer) {
+      clearInterval(keyboardProgressTimer)
+    }
+
+    // 使用独立的计时器，不受用户操作影响
+    const startTime = performance.now()
+    
+    const progressTimer = setInterval(() => {
+      const elapsed = performance.now() - startTime
       const progress = Math.min((elapsed / MOUSE_MOVE_TEST_DURATION) * 100, 100)
       setKeyboardReportRateTestProgress(progress)
 
       if (elapsed >= MOUSE_MOVE_TEST_DURATION) {
-        clearInterval(progressInterval)
+        clearInterval(progressTimer)
+        setKeyboardProgressTimer(null)
         setIsKeyboardReportRateTesting(false)
         setKeyboardReportRateTestReady(true)
         setKeyboardReportRateTestProgress(100)
       }
-    }, 50)
+    }, 500) // 每500ms更新一次，让组件动画处理平滑过渡
+    
+    setKeyboardProgressTimer(progressTimer)
   }, [
     isMouseTesting,
     isKeyboardTesting,
     isMouseMoveTesting,
-    isKeyboardReportRateTesting
+    isKeyboardReportRateTesting,
+    keyboardProgressTimer
   ])
 
   // 简化的鼠标测试 - 仅处理测试中的点击
@@ -206,7 +233,7 @@ export default function Home() {
     setTestResults((prev) => [...prev, result])
     setWaitingForInput(false)
 
-    if (currentTestCount < MAX_TEST_COUNT) {
+    if (currentTestCount < MOUSE_TEST_COUNT) {
       // 立即开始下一次测试，无延迟
       setWaitingForInput(true)
       setTestStartTime(performance.now())
@@ -234,6 +261,18 @@ export default function Home() {
     },
     [isMouseMoveTesting]
   )
+
+  // 清理计时器
+  useEffect(() => {
+    return () => {
+      if (mouseProgressTimer) {
+        clearInterval(mouseProgressTimer)
+      }
+      if (keyboardProgressTimer) {
+        clearInterval(keyboardProgressTimer)
+      }
+    }
+  }, [mouseProgressTimer, keyboardProgressTimer])
 
   // 键盘事件监听
   useEffect(() => {
@@ -269,7 +308,7 @@ export default function Home() {
         setTestResults((prev) => [...prev, result])
         setWaitingForInput(false)
 
-        if (currentTestCount < MAX_TEST_COUNT) {
+        if (currentTestCount < KEYBOARD_TEST_COUNT) {
           // 立即开始下一次测试，无延迟
           setWaitingForInput(true)
           setTestStartTime(performance.now())
@@ -305,7 +344,7 @@ export default function Home() {
   const mouseMoveReportRateStats = calculateMouseMoveReportRate(mouseMoveEvents)
 
   // 新增：计算键盘回报率数据
-  const keyboardMoveReportRateStats = calculateMouseMoveReportRate(
+  const keyboardMoveReportRateStats = calculateKeyboardReportRate(
     keyboardReportRateEvents
   )
 
@@ -344,7 +383,7 @@ export default function Home() {
                 hasResults={testResults.filter((r) => r.testType === 'mouse').length > 0}
                 isOtherTestRunning={isKeyboardTesting || isMouseMoveTesting || isKeyboardReportRateTesting}
                 currentCount={mouseTestCount}
-                maxCount={MAX_TEST_COUNT}
+                maxCount={MOUSE_TEST_COUNT}
                 onClick={
                   isMouseTesting && waitingForInput
                     ? handleMouseClick
@@ -364,7 +403,7 @@ export default function Home() {
                 <TestProgress
                   testType="response"
                   currentCount={isMouseTesting ? mouseTestCount : testResults.filter((r) => r.testType === 'mouse').length}
-                  maxCount={MAX_TEST_COUNT}
+                  maxCount={MOUSE_TEST_COUNT}
                   isActive={isMouseTesting}
                   isDisabled={isKeyboardTesting || isMouseMoveTesting || isKeyboardReportRateTesting}
                   onRestart={handleMouseRestart}
@@ -379,7 +418,7 @@ export default function Home() {
                     <DeviceChart
                       testResults={testResults
                         .filter((r) => r.testType === 'mouse')
-                        .slice(-20)}
+                        .slice(-30)}
                       deviceType="mouse"
                     />
                   </div>
@@ -444,7 +483,7 @@ export default function Home() {
                   isActive={isMouseMoveTesting}
                   isDisabled={isMouseTesting || isKeyboardTesting || isKeyboardReportRateTesting}
                   onRestart={handleMouseMoveTestStart}
-                  buttonText={isMouseMoveTesting ? '测试进行中...' : '重新测试回报率'}
+                  buttonText={isMouseMoveTesting ? '测试进行中...' : '重新测试'}
                 />
               )}
 
@@ -493,7 +532,7 @@ export default function Home() {
                 hasResults={testResults.filter((r) => r.testType === 'keyboard').length > 0}
                 isOtherTestRunning={isMouseTesting || isMouseMoveTesting || isKeyboardReportRateTesting}
                 currentCount={keyboardTestCount}
-                maxCount={MAX_TEST_COUNT}
+                maxCount={KEYBOARD_TEST_COUNT}
                 onClick={
                   keyboardTestReady &&
                   !isKeyboardTesting &&
@@ -512,7 +551,7 @@ export default function Home() {
                 <TestProgress
                   testType="response"
                   currentCount={isKeyboardTesting ? keyboardTestCount : testResults.filter((r) => r.testType === 'keyboard').length}
-                  maxCount={MAX_TEST_COUNT}
+                  maxCount={KEYBOARD_TEST_COUNT}
                   isActive={isKeyboardTesting}
                   isDisabled={isMouseTesting || isMouseMoveTesting || isKeyboardReportRateTesting}
                   onRestart={handleKeyboardRestart}
@@ -528,7 +567,7 @@ export default function Home() {
                     <DeviceChart
                       testResults={testResults
                         .filter((r) => r.testType === 'keyboard')
-                        .slice(-20)}
+                        .slice(-50)}
                       deviceType="keyboard"
                     />
                   </div>
@@ -593,7 +632,7 @@ export default function Home() {
                   isActive={isKeyboardReportRateTesting}
                   isDisabled={isMouseTesting || isKeyboardTesting || isMouseMoveTesting || isKeyboardReportRateTesting}
                   onRestart={handleKeyboardReportRateTestStart}
-                  buttonText={isKeyboardReportRateTesting ? '测试进行中...' : '重新测试回报率'}
+                  buttonText={isKeyboardReportRateTesting ? '测试进行中...' : '重新测试'}
                 />
               )}
 

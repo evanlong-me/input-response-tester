@@ -18,13 +18,9 @@ interface ReportRateStats {
   jitter: number
   stability: number
   totalEvents: number
-  testDuration: number
   effectiveReportRate: number
   temporalPrecision: number
-  frequencyStability: number
-  intervalVariance: number
   medianInterval: number
-  p95Interval: number
 }
 
 interface PerformanceStatsProps {
@@ -106,12 +102,20 @@ export function PerformanceStats({
               </span>
             </div>
             {advancedStats && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">中位数</span>
-                <span className="font-medium text-sm text-teal-600 dark:text-teal-400">
-                  {advancedStats.median}ms
-                </span>
-              </div>
+              <>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">中位数</span>
+                  <span className="font-medium text-sm text-teal-600 dark:text-teal-400">
+                    {advancedStats.median}ms
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">95分位数</span>
+                  <span className="font-medium text-sm text-purple-600 dark:text-purple-400">
+                    {advancedStats.p95}ms
+                  </span>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -132,6 +136,24 @@ export function PerformanceStats({
                 <span className="text-sm text-muted-foreground">变异系数</span>
                 <span className="font-medium text-sm text-pink-600 dark:text-pink-400">
                   {advancedStats.coefficientOfVariation}%
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">99分位数</span>
+                <span className="font-medium text-sm text-indigo-600 dark:text-indigo-400">
+                  {advancedStats.p99}ms
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">延迟范围</span>
+                <span className="font-medium text-sm text-amber-600 dark:text-amber-400">
+                  {stats.max - stats.min}ms
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">测试次数</span>
+                <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
+                  {stats.count}次
                 </span>
               </div>
             </div>
@@ -175,6 +197,12 @@ export function PerformanceStats({
                 {reportRateStats.minReportRate}Hz
               </span>
             </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">平均间隔</span>
+              <span className="font-medium text-sm text-teal-600 dark:text-teal-400">
+                {reportRateStats.averageInterval}ms
+              </span>
+            </div>
           </div>
         </div>
         
@@ -199,6 +227,12 @@ export function PerformanceStats({
                   : 'text-rose-600 dark:text-rose-400'
               }`}>
                 {reportRateStats.stability}%
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">时序精度</span>
+              <span className="font-medium text-sm text-cyan-600 dark:text-cyan-400">
+                {reportRateStats.temporalPrecision}%
               </span>
             </div>
             <div className="flex justify-between items-center">

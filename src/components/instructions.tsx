@@ -20,7 +20,7 @@ export function Instructions() {
             <h4 className="font-medium mb-2">🖱️ 鼠标测试</h4>
             <div className="text-sm text-muted-foreground space-y-2">
               <p>
-                <strong>延迟测试：</strong>连续点击20次测量延迟
+                <strong>延迟测试：</strong>连续点击30次测量延迟
               </p>
               <p>
                 <strong>回报率测试：</strong>晃动鼠标5秒测量回报率
@@ -31,7 +31,7 @@ export function Instructions() {
             <h4 className="font-medium mb-2">⌨️ 键盘测试</h4>
             <div className="text-sm text-muted-foreground space-y-2">
               <p>
-                <strong>延迟测试：</strong>连续按键20次测量延迟
+                <strong>延迟测试：</strong>连续按键50次测量延迟
               </p>
               <p>
                 <strong>回报率测试：</strong>连续按键5秒测量回报率

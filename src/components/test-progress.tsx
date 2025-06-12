@@ -57,8 +57,7 @@ export function TestProgress({
 
   const getButtonText = () => {
     if (buttonText) return buttonText
-    if (isActive) return '重新开始测试'
-    return '开始新的测试'
+    return '重新测试'
   }
 
   return (
@@ -76,7 +75,7 @@ export function TestProgress({
       <Button
         onClick={onRestart}
         disabled={isDisabled}
-        className="w-full"
+        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700"
         variant="default"
       >
         {getButtonText()}

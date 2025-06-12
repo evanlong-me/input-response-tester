@@ -11,13 +11,9 @@ interface ReportRateStats {
   jitter: number
   stability: number
   totalEvents: number
-  testDuration: number
   effectiveReportRate: number
   temporalPrecision: number
-  frequencyStability: number
-  intervalVariance: number
   medianInterval: number
-  p95Interval: number
 }
 
 interface ReportRateStatsProps {
@@ -52,6 +48,7 @@ export function ReportRateStatsDisplay({ title, stats, deviceType }: ReportRateS
         <BarChart3 className="w-4 h-4" />
         <h4 className="font-medium">{title}</h4>
       </div>
+
       <div className="bg-muted/30 rounded-lg p-4 flex-1 flex flex-col justify-center">
         <div className="grid grid-cols-1 gap-4">
           <div className="space-y-3">
@@ -95,6 +92,14 @@ export function ReportRateStatsDisplay({ title, stats, deviceType }: ReportRateS
                   {stats.minReportRate}Hz
                 </span>
               </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  平均间隔
+                </span>
+                <span className="font-medium text-sm text-teal-600 dark:text-teal-400">
+                  {stats.averageInterval}ms
+                </span>
+              </div>
             </div>
           </div>
           <div className="space-y-3">
@@ -116,6 +121,14 @@ export function ReportRateStatsDisplay({ title, stats, deviceType }: ReportRateS
                 </span>
                 <span className={`font-medium text-sm ${getScoreColor(stats.stability)}`}>
                   {stats.stability}%
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  时序精度
+                </span>
+                <span className="font-medium text-sm text-cyan-600 dark:text-cyan-400">
+                  {stats.temporalPrecision}%
                 </span>
               </div>
               <div className="flex justify-between items-center">

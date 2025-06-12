@@ -20,8 +20,6 @@ interface Stats {
 interface AdvancedStats {
   stability: number
   consistency: number
-  performance: number
-  reliability: number
   median: number
   p95: number
   p99: number
@@ -38,16 +36,10 @@ interface ReportRateStats {
   jitter: number
   stability: number
   totalEvents: number
-  testDuration: number
   effectiveReportRate: number
   temporalPrecision: number
-  frequencyStability: number
-  intervalVariance: number
   medianInterval: number
-  p95Interval: number
 }
-
-const MAX_TEST_COUNT = 20
 
 // 计算基础统计数据
 export const calculateStats = (
@@ -75,8 +67,6 @@ export const calculateAdvancedStats = (results: TestResult[]): AdvancedStats => 
     return {
       stability: 0,
       consistency: 0,
-      performance: 0,
-      reliability: 0,
       median: 0,
       p95: 0,
       p99: 0,
@@ -114,25 +104,18 @@ export const calculateAdvancedStats = (results: TestResult[]): AdvancedStats => 
   }
   const jitterIndex = results.length > 1 ? jitterSum / (results.length - 1) : 0
 
-  // 稳定性：基于变异系数的倒数计算（变异系数越小越稳定）
-  const stability = Math.max(0, Math.min(100, 100 - coefficientOfVariation))
+  // 稳定性：基于变异系数的倒数计算，使用更合理的映射函数
+  // 变异系数越小越稳定，使用指数衰减函数避免直接归零
+  const stability = Math.max(0, Math.min(100, 100 * Math.exp(-coefficientOfVariation / 50)))
 
-  // 一致性：基于标准差与中位数的比值
-  const consistency = median > 0 ? Math.max(0, Math.min(100, 100 - (stdDev / median) * 100)) : 0
-
-  // 性能：基于延迟的倒数和分布计算
-  const performance = Math.max(0, Math.min(100, (30 / avg) * 100))
-
-  // 可靠性：基于测试样本数和数据质量
-  const sampleReliability = Math.min(100, (results.length / MAX_TEST_COUNT) * 100)
-  const distributionReliability = coefficientOfVariation < 20 ? 100 : Math.max(0, 100 - coefficientOfVariation)
-  const reliability = (sampleReliability + distributionReliability) / 2
+  // 一致性：基于标准差与中位数的比值，使用更平滑的映射
+  // 使用对数函数来处理大的变异，避免直接归零
+  const consistencyRatio = median > 0 ? stdDev / median : 1
+  const consistency = Math.max(0, Math.min(100, 100 * Math.exp(-consistencyRatio * 2)))
 
   return {
     stability: Math.round(stability * 100) / 100,
     consistency: Math.round(consistency * 100) / 100,
-    performance: Math.round(performance * 100) / 100,
-    reliability: Math.round(reliability * 100) / 100,
     median: Math.round(median * 100) / 100,
     p95: Math.round(p95 * 100) / 100,
     p99: Math.round(p99 * 100) / 100,
@@ -153,13 +136,9 @@ export const calculateMouseMoveReportRate = (events: MouseMoveEvent[]): ReportRa
       jitter: 0,
       stability: 0,
       totalEvents: 0,
-      testDuration: 0,
       effectiveReportRate: 0,
       temporalPrecision: 0,
-      frequencyStability: 0,
-      intervalVariance: 0,
-      medianInterval: 0,
-      p95Interval: 0
+      medianInterval: 0
     }
   }
 
@@ -167,7 +146,7 @@ export const calculateMouseMoveReportRate = (events: MouseMoveEvent[]): ReportRa
   const intervals = []
   for (let i = 1; i < events.length; i++) {
     const interval = events[i].timestamp - events[i - 1].timestamp
-    if (interval > 0 && interval < 100) { // 过滤异常间隔（>100ms可能是暂停）
+    if (interval > 0) {
       intervals.push(interval)
     }
   }
@@ -181,64 +160,53 @@ export const calculateMouseMoveReportRate = (events: MouseMoveEvent[]): ReportRa
       jitter: 0,
       stability: 0,
       totalEvents: events.length,
-      testDuration: 0,
       effectiveReportRate: 0,
       temporalPrecision: 0,
-      frequencyStability: 0,
-      intervalVariance: 0,
-      medianInterval: 0,
-      p95Interval: 0
+      medianInterval: 0
     }
   }
 
-  // 排序间隔用于计算分位数
-  const sortedIntervals = [...intervals].sort((a, b) => a - b)
+  // 过滤异常值：移除明显的异常间隔
+  // 1. 过滤掉过短的间隔（< 0.1ms，可能是重复事件）
+  // 2. 过滤掉过长的间隔（> 500ms，可能是事件循环阻塞或用户停顿）
+  // 移除浏览器刷新率限制，允许检测高回报率设备
+  const filteredIntervals = intervals.filter(interval => interval >= 0.1 && interval <= 500)
   
-  const averageInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length
-  const reportRate = averageInterval > 0 ? Math.round(1000 / averageInterval) : 0
+  // 如果过滤后数据太少，使用原始数据
+  const validIntervals = filteredIntervals.length >= Math.max(2, intervals.length * 0.5) 
+    ? filteredIntervals 
+    : intervals
 
+  // 基础统计
+  const sortedIntervals = [...validIntervals].sort((a, b) => a - b)
+  const averageInterval = validIntervals.reduce((a, b) => a + b, 0) / validIntervals.length
+  const minInterval = Math.min(...validIntervals)
+  const maxInterval = Math.max(...validIntervals)
+  
   // 中位数间隔
   const medianInterval = sortedIntervals.length % 2 === 0
     ? (sortedIntervals[sortedIntervals.length / 2 - 1] + sortedIntervals[sortedIntervals.length / 2]) / 2
     : sortedIntervals[Math.floor(sortedIntervals.length / 2)]
 
-  // 95分位数间隔
-  const p95Index = Math.ceil(sortedIntervals.length * 0.95) - 1
-  const p95Interval = sortedIntervals[Math.max(0, p95Index)]
+  // 回报率计算（Hz = 1000ms / 间隔ms）
+  // 注意：测量结果反映浏览器能检测到的事件频率
+  // 高端设备的实际硬件回报率可能会受到浏览器事件循环的影响
+  const reportRate = Math.round(1000 / averageInterval)
+  const effectiveReportRate = Math.round(1000 / medianInterval)
+  const maxReportRate = Math.round(1000 / minInterval)
+  const minReportRate = Math.round(1000 / maxInterval)
 
-  // 计算最大和最小回报率
-  const maxInterval = Math.max(...intervals)
-  const minInterval = Math.min(...intervals)
-  const maxReportRate = minInterval > 0 ? Math.round(1000 / minInterval) : 0
-  const minReportRate = maxInterval > 0 ? Math.round(1000 / maxInterval) : 0
+  // 抖动计算（标准差）
+  const variance = validIntervals.reduce((acc, interval) => acc + Math.pow(interval - averageInterval, 2), 0) / validIntervals.length
+  const jitter = Math.sqrt(variance)
 
-  // 有效回报率（基于中位数计算，更稳定）
-  const effectiveReportRate = medianInterval > 0 ? Math.round(1000 / medianInterval) : 0
-
-  // 计算抖动（间隔的标准差）
-  const intervalVariance = intervals.reduce(
-    (acc, interval) => acc + Math.pow(interval - averageInterval, 2),
-    0
-  ) / intervals.length
-  const jitter = Math.sqrt(intervalVariance)
-
-  // 时序精度（基于抖动的倒数）
-  const temporalPrecision = averageInterval > 0 
-    ? Math.max(0, Math.min(100, 100 - (jitter / averageInterval) * 100))
-    : 0
-
-  // 频率稳定性（基于变异系数）
+  // 稳定性指标
   const coefficientOfVariation = averageInterval > 0 ? (jitter / averageInterval) * 100 : 0
-  const frequencyStability = Math.max(0, Math.min(100, 100 - coefficientOfVariation))
-
-  // 计算稳定性（综合指标）
-  const stability = (temporalPrecision + frequencyStability) / 2
-
-  // 计算测试持续时间
-  const testDuration = events.length > 0
-    ? events[events.length - 1].timestamp - events[0].timestamp
-    : 0
-
+  const stability = Math.max(0, Math.min(100, 100 - coefficientOfVariation))
+  
+  // 时序精度（抖动越小精度越高）
+  const temporalPrecision = Math.max(0, Math.min(100, 100 - (jitter / averageInterval) * 100))
+  
   return {
     averageInterval: Math.round(averageInterval * 1000) / 1000,
     reportRate,
@@ -247,12 +215,102 @@ export const calculateMouseMoveReportRate = (events: MouseMoveEvent[]): ReportRa
     jitter: Math.round(jitter * 1000) / 1000,
     stability: Math.round(stability * 100) / 100,
     totalEvents: events.length,
-    testDuration: Math.round(testDuration),
     effectiveReportRate,
     temporalPrecision: Math.round(temporalPrecision * 100) / 100,
-    frequencyStability: Math.round(frequencyStability * 100) / 100,
-    intervalVariance: Math.round(intervalVariance * 1000) / 1000,
-    medianInterval: Math.round(medianInterval * 1000) / 1000,
-    p95Interval: Math.round(p95Interval * 1000) / 1000
+    medianInterval: Math.round(medianInterval * 1000) / 1000
+  }
+}
+
+// 计算键盘回报率统计数据（专门针对键盘事件优化）
+export const calculateKeyboardReportRate = (events: MouseMoveEvent[]): ReportRateStats => {
+  if (events.length < 2) {
+    return {
+      averageInterval: 0,
+      reportRate: 0,
+      maxReportRate: 0,
+      minReportRate: 0,
+      jitter: 0,
+      stability: 0,
+      totalEvents: 0,
+      effectiveReportRate: 0,
+      temporalPrecision: 0,
+      medianInterval: 0
+    }
+  }
+
+  // 计算时间间隔
+  const intervals = []
+  for (let i = 1; i < events.length; i++) {
+    const interval = events[i].timestamp - events[i - 1].timestamp
+    if (interval > 0) {
+      intervals.push(interval)
+    }
+  }
+
+  if (intervals.length === 0) {
+    return {
+      averageInterval: 0,
+      reportRate: 0,
+      maxReportRate: 0,
+      minReportRate: 0,
+      jitter: 0,
+      stability: 0,
+      totalEvents: events.length,
+      effectiveReportRate: 0,
+      temporalPrecision: 0,
+      medianInterval: 0
+    }
+  }
+
+  // 键盘特殊过滤：
+  // 1. 过滤掉过短的间隔（< 0.5ms，键盘重复事件或浏览器重复触发）
+  // 2. 过滤掉过长的间隔（> 1000ms，可能是用户停顿或事件循环阻塞）
+  // 移除浏览器刷新率限制，支持高回报率键盘（如8000Hz游戏键盘）
+  const filteredIntervals = intervals.filter(interval => interval >= 0.5 && interval <= 1000)
+  
+  // 如果过滤后数据太少，使用原始数据
+  const validIntervals = filteredIntervals.length >= Math.max(2, intervals.length * 0.3) 
+    ? filteredIntervals 
+    : intervals
+
+  // 基础统计
+  const sortedIntervals = [...validIntervals].sort((a, b) => a - b)
+  const averageInterval = validIntervals.reduce((a, b) => a + b, 0) / validIntervals.length
+  const minInterval = Math.min(...validIntervals)
+  const maxInterval = Math.max(...validIntervals)
+  
+  // 中位数间隔
+  const medianInterval = sortedIntervals.length % 2 === 0
+    ? (sortedIntervals[sortedIntervals.length / 2 - 1] + sortedIntervals[sortedIntervals.length / 2]) / 2
+    : sortedIntervals[Math.floor(sortedIntervals.length / 2)]
+
+  // 回报率计算（Hz = 1000ms / 间隔ms）
+  const reportRate = Math.round(1000 / averageInterval)
+  const effectiveReportRate = Math.round(1000 / medianInterval)
+  const maxReportRate = Math.round(1000 / minInterval)
+  const minReportRate = Math.round(1000 / maxInterval)
+
+  // 抖动计算（标准差）
+  const variance = validIntervals.reduce((acc, interval) => acc + Math.pow(interval - averageInterval, 2), 0) / validIntervals.length
+  const jitter = Math.sqrt(variance)
+
+  // 稳定性指标
+  const coefficientOfVariation = averageInterval > 0 ? (jitter / averageInterval) * 100 : 0
+  const stability = Math.max(0, Math.min(100, 100 - coefficientOfVariation))
+  
+  // 时序精度（抖动越小精度越高）
+  const temporalPrecision = Math.max(0, Math.min(100, 100 - (jitter / averageInterval) * 100))
+  
+  return {
+    averageInterval: Math.round(averageInterval * 1000) / 1000,
+    reportRate,
+    maxReportRate,
+    minReportRate,
+    jitter: Math.round(jitter * 1000) / 1000,
+    stability: Math.round(stability * 100) / 100,
+    totalEvents: events.length,
+    effectiveReportRate,
+    temporalPrecision: Math.round(temporalPrecision * 100) / 100,
+    medianInterval: Math.round(medianInterval * 1000) / 1000
   }
 } 

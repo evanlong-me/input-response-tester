@@ -25,8 +25,6 @@ interface Stats {
 interface AdvancedStats {
   stability: number
   consistency: number
-  performance: number
-  reliability: number
   median: number
   p95: number
   p99: number
@@ -52,15 +50,6 @@ export function OverallAnalysis({
     if (score >= 80) return 'text-emerald-600 dark:text-emerald-400'
     if (score >= 60) return 'text-amber-600 dark:text-amber-400'
     return 'text-rose-600 dark:text-rose-400'
-  }
-
-  const getOverallScore = () => {
-    return Math.round(
-      (overallAdvancedStats.stability +
-        overallAdvancedStats.consistency +
-        overallAdvancedStats.performance +
-        overallAdvancedStats.reliability) / 4
-    )
   }
 
   const getPerformanceDifference = () => {
@@ -122,6 +111,14 @@ export function OverallAnalysis({
                   {overallStats.count}次
                 </span>
               </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  延迟范围
+                </span>
+                <span className="font-medium text-sm text-amber-600 dark:text-amber-400">
+                  {overallStats.max - overallStats.min}ms
+                </span>
+              </div>
             </div>
           </div>
 
@@ -150,10 +147,26 @@ export function OverallAnalysis({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  综合评分
+                  中位数延迟
                 </span>
-                <span className={`font-medium text-sm ${getScoreColor(getOverallScore())}`}>
-                  {getOverallScore()}%
+                <span className="font-medium text-sm text-teal-600 dark:text-teal-400">
+                  {overallAdvancedStats.median}ms
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  标准差
+                </span>
+                <span className="font-medium text-sm text-cyan-600 dark:text-cyan-400">
+                  {overallAdvancedStats.standardDeviation}ms
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  变异系数
+                </span>
+                <span className="font-medium text-sm text-pink-600 dark:text-pink-400">
+                  {overallAdvancedStats.coefficientOfVariation}%
                 </span>
               </div>
             </div>
@@ -188,6 +201,22 @@ export function OverallAnalysis({
                 </span>
                 <span className="font-medium text-sm text-violet-600 dark:text-violet-400">
                   {getPerformanceDifference()}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  鼠标测试次数
+                </span>
+                <span className="font-medium text-sm text-slate-600 dark:text-slate-400">
+                  {mouseStats.count}次
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  键盘测试次数
+                </span>
+                <span className="font-medium text-sm text-slate-600 dark:text-slate-400">
+                  {keyboardStats.count}次
                 </span>
               </div>
             </div>

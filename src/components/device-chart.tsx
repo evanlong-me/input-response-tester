@@ -108,7 +108,7 @@ export function DeviceChart({ testResults, deviceType }: DeviceChartProps) {
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tickFormatter={(value) => `第 ${value} 次`}
+            tickFormatter={(value) => `${value}`}
           />
           <YAxis
             tickLine={false}
