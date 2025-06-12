@@ -4,7 +4,7 @@
 
 [!example.png(./public/example.png)]
 
-[![Example](./public/example.png)](./public/example.png)
+![Example](./public/example.png)
 
 ## 功能特性
 
