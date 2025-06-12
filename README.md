@@ -2,6 +2,10 @@
 
 一个用于测试键盘和鼠标输入延迟及回报率的现代化 Web 应用程序。
 
+[!example.png(./public/example.png)]
+
+[![Example](./public/example.png)](./public/example.png)
+
 ## 功能特性
 
 ### 延迟测试
@@ -122,7 +126,6 @@ src/
 - ⚡ **高性能**：使用 Next.js 和 Turbopack 优化性能
 - 📱 **响应式**：支持各种设备和屏幕尺寸
 - 🔍 **详细统计**：提供平均值、标准差、最值等详细数据
-
 
 如果这个项目对您有帮助，请给一个 ⭐ Star！
 
