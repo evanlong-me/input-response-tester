@@ -79,37 +79,61 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* 主背景 - 深黑色 */
+  --background: oklch(0.08 0 0);
+  /* 主文字 - 高对比度白色 */
+  --foreground: oklch(0.95 0 0);
+  
+  /* 卡片背景 - 深灰色，略亮于背景 */
+  --card: oklch(0.12 0 0);
+  --card-foreground: oklch(0.95 0 0);
+  
+  /* 弹出层 */
+  --popover: oklch(0.12 0 0);
+  --popover-foreground: oklch(0.95 0 0);
+  
+  /* 主要按钮 - 优雅的浅灰色 */
+  --primary: oklch(0.85 0 0);
+  --primary-foreground: oklch(0.08 0 0);
+  
+  /* 次要元素 - 中等灰色 */
+  --secondary: oklch(0.18 0 0);
+  --secondary-foreground: oklch(0.9 0 0);
+  
+  /* 静音元素 - 更深的灰色 */
+  --muted: oklch(0.15 0 0);
+  --muted-foreground: oklch(0.65 0 0);
+  
+  /* 强调元素 */
+  --accent: oklch(0.2 0 0);
+  --accent-foreground: oklch(0.9 0 0);
+  
+  /* 危险操作 - 保持红色但调整为暗色主题 */
+  --destructive: oklch(0.6 0.2 25);
+  
+  /* 边框 - 微妙的灰色边框 */
+  --border: oklch(0.25 0 0);
+  /* 输入框 - 略深的背景 */
+  --input: oklch(0.16 0 0);
+  /* 焦点环 - 中等灰色 */
+  --ring: oklch(0.5 0 0);
+  
+  /* 图表颜色 - 优雅的灰度渐变 */
+  --chart-1: oklch(0.75 0 0);
+  --chart-2: oklch(0.65 0 0);
+  --chart-3: oklch(0.55 0 0);
+  --chart-4: oklch(0.45 0 0);
+  --chart-5: oklch(0.35 0 0);
+  
+  /* 侧边栏 */
+  --sidebar: oklch(0.1 0 0);
+  --sidebar-foreground: oklch(0.9 0 0);
+  --sidebar-primary: oklch(0.8 0 0);
+  --sidebar-primary-foreground: oklch(0.1 0 0);
+  --sidebar-accent: oklch(0.18 0 0);
+  --sidebar-accent-foreground: oklch(0.9 0 0);
+  --sidebar-border: oklch(0.22 0 0);
+  --sidebar-ring: oklch(0.5 0 0);
 }
 
 @layer base {
@@ -119,4 +143,113 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer utilities {
+  /* 液态玻璃效果增强 */
+  .glass-morphism {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  }
+  
+  /* 高斯模糊增强 */
+  .enhanced-blur {
+    backdrop-filter: blur(24px) brightness(1.1) contrast(1.1);
+    -webkit-backdrop-filter: blur(24px) brightness(1.1) contrast(1.1);
+  }
+  
+  /* 真正的液态玻璃边框效果 */
+  .liquid-3d-border {
+    /* 纯净液态玻璃背景 */
+    background: transparent;
+    
+    /* 液态玻璃边框 - 支持圆角 */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    position: relative;
+    
+    /* 液态玻璃阴影系统 */
+    box-shadow: 
+      /* 外部深度阴影 */
+      0 25px 50px rgba(0, 0, 0, 0.4),
+      0 12px 25px rgba(0, 0, 0, 0.25),
+      0 6px 12px rgba(0, 0, 0, 0.15),
+      /* 玻璃厚度感 */
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+      inset 1px 0 0 rgba(255, 255, 255, 0.1),
+      inset -1px 0 0 rgba(0, 0, 0, 0.05);
+    
+    /* 液态玻璃圆角 */
+    border-radius: 24px;
+    
+    /* 3D 变换 */
+    transform: perspective(1000px) rotateX(0deg);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* 液态效果基础 */
+    overflow: hidden;
+  }
+  
+
+  
+  /* 玻璃反射光效 */
+  .liquid-3d-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.05) 50%,
+      transparent
+    );
+    border-radius: inherit;
+    transform: skewX(-25deg);
+    transition: left 0.6s ease;
+    pointer-events: none;
+  }
+  
+  /* 悬停时的液态玻璃效果增强 */
+  .liquid-3d-border:hover {
+    background: transparent;
+    
+    border-color: rgba(255, 255, 255, 0.25);
+    
+    transform: perspective(1000px) rotateX(2deg) translateY(-3px) scale(1.01);
+    
+    box-shadow: 
+      /* 悬停时阴影更深 */
+      0 30px 60px rgba(0, 0, 0, 0.5),
+      0 15px 30px rgba(0, 0, 0, 0.3),
+      0 8px 15px rgba(0, 0, 0, 0.2),
+      /* 增强玻璃厚度感 */
+      inset 0 2px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.15),
+      inset 2px 0 0 rgba(255, 255, 255, 0.15),
+             inset -2px 0 0 rgba(0, 0, 0, 0.08);
+  }
+  
+  /* 悬停时边框渐变增强 */
+  .liquid-3d-border:hover::after {
+    background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.4),
+      rgba(255, 255, 255, 0.15),
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.15),
+      rgba(255, 255, 255, 0.4)
+    );
+  }
+  
+  /* 悬停时触发反射光效 */
+  .liquid-3d-border:hover::before {
+    left: 100%;
+  }
+  
+
 }

@@ -15,7 +15,7 @@ interface TestProgressProps {
   buttonText?: string
 }
 
-export function TestProgress({
+export const TestProgress = React.memo(({
   testType,
   currentCount,
   maxCount,
@@ -24,7 +24,7 @@ export function TestProgress({
   isDisabled,
   onRestart,
   buttonText
-}: TestProgressProps) {
+}: TestProgressProps) => {
   const getProgressValue = () => {
     if (testType === 'response' && currentCount !== undefined && maxCount) {
       return isActive ? (currentCount / maxCount) * 100 : 100
@@ -82,4 +82,6 @@ export function TestProgress({
       </Button>
     </div>
   )
-} 
+})
+
+TestProgress.displayName = 'TestProgress' 

@@ -1,5 +1,6 @@
 'use client'
 
+import React, { useMemo } from 'react'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Line, LineChart } from 'recharts'
 import {
   ChartConfig,
@@ -8,6 +9,7 @@ import {
   ChartTooltipContent
 } from '@/components/ui/chart'
 import { Mouse, Keyboard, MousePointer2, Activity } from 'lucide-react'
+import { PRECISION, preciseRound } from '@/lib/precision-utils'
 
 interface TestResult {
   timestamp: number
@@ -49,14 +51,16 @@ const reportRateChartConfig = {
   }
 } satisfies ChartConfig
 
-export function DeviceChart({ testResults, deviceType }: DeviceChartProps) {
+export const DeviceChart = React.memo(({ testResults, deviceType }: DeviceChartProps) => {
   // 创建简单的数据结构
-  const chartData = testResults.map((result, index) => ({
-    test: index + 1,
-    responseTime: result.responseTime
-  }))
+  const chartData = useMemo(() => {
+    return testResults.map((result, index) => ({
+      test: index + 1,
+      responseTime: result.responseTime
+    }))
+  }, [testResults])
 
-  const deviceInfo = {
+  const deviceInfo = useMemo(() => ({
     mouse: {
       icon: Mouse,
       title: '延迟性能趋势',
@@ -67,7 +71,7 @@ export function DeviceChart({ testResults, deviceType }: DeviceChartProps) {
       title: '延迟性能趋势',
       description: '响应延迟变化趋势'
     }
-  }
+  }), [])
 
   const DeviceIcon = deviceInfo[deviceType].icon
 
@@ -130,25 +134,30 @@ export function DeviceChart({ testResults, deviceType }: DeviceChartProps) {
       </ChartContainer>
     </div>
   )
-}
+})
 
-export function ReportRateChart({ events, deviceType }: ReportRateChartProps) {
+DeviceChart.displayName = 'DeviceChart'
+
+export const ReportRateChart = React.memo(({ events, deviceType }: ReportRateChartProps) => {
   // 计算回报率数据
-  const chartData = []
-  if (events.length > 1) {
-    for (let i = 1; i < events.length; i++) {
-      const interval = events[i].timestamp - events[i - 1].timestamp
-      const reportRate = interval > 0 ? Math.round(1000 / interval) : 0
-      chartData.push({
-        index: i,
-        reportRate: reportRate,
-        interval: Math.round(interval * 100) / 100,
-        time: Math.round((events[i].timestamp - events[0].timestamp) / 1000 * 100) / 100
-      })
+  const chartData = useMemo(() => {
+    const data = []
+    if (events.length > 1) {
+      for (let i = 1; i < events.length; i++) {
+        const interval = events[i].timestamp - events[i - 1].timestamp
+        const reportRate = interval > 0 ? preciseRound(1000 / interval, PRECISION.FREQUENCY) : 0
+        data.push({
+          index: i,
+          reportRate: reportRate,
+          interval: preciseRound(interval, PRECISION.TIME),
+          time: preciseRound((events[i].timestamp - events[0].timestamp) / 1000, 2) // 2位小数的秒数
+        })
+      }
     }
-  }
+    return data
+  }, [events])
 
-  const deviceInfo = {
+  const deviceInfo = useMemo(() => ({
     mouse: {
       icon: MousePointer2,
       title: '鼠标回报率',
@@ -159,7 +168,7 @@ export function ReportRateChart({ events, deviceType }: ReportRateChartProps) {
       title: '键盘回报率',
       description: '回报率变化趋势'
     }
-  }
+  }), [])
 
   const DeviceIcon = deviceInfo[deviceType].icon
 
@@ -203,4 +212,6 @@ export function ReportRateChart({ events, deviceType }: ReportRateChartProps) {
       </ChartContainer>
     </div>
   )
-}
+})
+
+ReportRateChart.displayName = 'ReportRateChart'

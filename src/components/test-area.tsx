@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Mouse, Keyboard, MousePointer2, Zap, Timer } from 'lucide-react'
 
 interface TestAreaProps {
@@ -99,7 +99,7 @@ const testConfig = {
   }
 }
 
-export function TestArea({
+export const TestArea = React.memo(({
   testType,
   isActive,
   isReady,
@@ -114,12 +114,12 @@ export function TestArea({
   onMouseMove,
   tabIndex,
   className = ''
-}: TestAreaProps) {
-  const config = testConfig[testType]
+}: TestAreaProps) => {
+  const config = useMemo(() => testConfig[testType], [testType])
   const Icon = config.icon
   const ActiveIcon = config.activeIcon
 
-  const getAreaStyle = () => {
+  const getAreaStyle = useMemo(() => {
     if (isWaiting && isActive) {
       return config.colors.active
     }
@@ -136,9 +136,9 @@ export function TestArea({
       return config.colors.disabled
     }
     return config.colors.disabled
-  }
+  }, [isWaiting, isActive, isReady, isOtherTestRunning, hasResults, config.colors])
 
-  const renderContent = () => {
+  const renderContent = useMemo(() => {
     // 测试进行中
     if (isWaiting && isActive) {
       return (
@@ -184,12 +184,12 @@ export function TestArea({
                 {config.completedTitle}
               </p>
               {(testType === 'mouse-move' || testType === 'keyboard-report-rate') && totalEvents && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                {testType === 'mouse-move' 
-                  ? `记录了 ${totalEvents} 个事件`
-                  : `记录了 ${totalEvents} 个事件`
-                }
-              </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {testType === 'mouse-move' 
+                    ? `记录了 ${totalEvents} 个事件`
+                    : `记录了 ${totalEvents} 个事件`
+                  }
+                </p>
               )}
               <p className="text-xs text-muted-foreground mt-1">
                 {config.completedSubtitle}
@@ -247,7 +247,7 @@ export function TestArea({
     }
 
     return null
-  }
+  }, [isWaiting, isActive, isReady, isOtherTestRunning, hasResults, testType, currentCount, maxCount, totalEvents, remainingTime, config, Icon, ActiveIcon])
 
   const height = testType === 'mouse-move' || testType === 'keyboard-report-rate' ? 'h-40' : 'h-32'
 
@@ -256,7 +256,7 @@ export function TestArea({
       className={`
         ${height} rounded-lg border-2 border-dashed flex items-center justify-center transition-all
         select-none user-select-none touch-manipulation outline-none
-        ${getAreaStyle()}
+        ${getAreaStyle}
         ${className}
       `}
       onClick={onClick}
@@ -268,7 +268,9 @@ export function TestArea({
       draggable={false}
       style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
     >
-      {renderContent()}
+      {renderContent}
     </div>
   )
-} 
+})
+
+TestArea.displayName = 'TestArea' 

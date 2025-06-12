@@ -1,7 +1,8 @@
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import { BarChart3 } from 'lucide-react'
+import { formatDuration } from '@/lib/precision-utils'
 
 interface ReportRateStats {
   averageInterval: number
@@ -11,9 +12,13 @@ interface ReportRateStats {
   jitter: number
   stability: number
   totalEvents: number
+  testDuration: number
   effectiveReportRate: number
-  temporalPrecision: number
+  signalQuality: number
+  frequencyStability: number
+  intervalVariance: number
   medianInterval: number
+  p95Interval: number
 }
 
 interface ReportRateStatsProps {
@@ -22,14 +27,8 @@ interface ReportRateStatsProps {
   deviceType: 'mouse' | 'keyboard'
 }
 
-export function ReportRateStatsDisplay({ title, stats, deviceType }: ReportRateStatsProps) {
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-emerald-600 dark:text-emerald-400'
-    if (score >= 60) return 'text-amber-600 dark:text-amber-400'
-    return 'text-rose-600 dark:text-rose-400'
-  }
-
-  const deviceLabels = {
+export const ReportRateStatsDisplay = React.memo(({ title, stats, deviceType }: ReportRateStatsProps) => {
+  const deviceLabels = useMemo(() => ({
     mouse: {
       frequency: '回报率',
       events: '移动事件'
@@ -38,111 +37,59 @@ export function ReportRateStatsDisplay({ title, stats, deviceType }: ReportRateS
       frequency: '回报率',
       events: '按键事件'
     }
-  }
+  }), [])
 
-  const labels = deviceLabels[deviceType]
+  const labels = useMemo(() => deviceLabels[deviceType], [deviceLabels, deviceType])
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="flex flex-col h-full space-y-3">
+      <div className="flex items-center gap-2">
         <BarChart3 className="w-4 h-4" />
         <h4 className="font-medium">{title}</h4>
       </div>
-
-      <div className="bg-muted/30 rounded-lg p-4 flex-1 flex flex-col justify-center">
-        <div className="grid grid-cols-1 gap-4">
-          <div className="space-y-3">
-            <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
-              {labels.frequency}指标
+      <div className="flex-1">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-purple-50 dark:bg-purple-950/20 p-3 rounded-lg">
+              <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">平均{labels.frequency}</p>
+              <p className="text-lg font-bold text-purple-700 dark:text-purple-300">{stats.reportRate}Hz</p>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  平均{labels.frequency}
-                </span>
-                <span className={`font-medium text-sm ${
-                  deviceType === 'mouse' ? 'text-purple-600 dark:text-purple-400' : 'text-indigo-600 dark:text-indigo-400'
-                }`}>
-                  {stats.reportRate}Hz
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  有效{labels.frequency}
-                </span>
-                <span className={`font-medium text-sm ${
-                  deviceType === 'mouse' ? 'text-indigo-600 dark:text-indigo-400' : 'text-purple-600 dark:text-purple-400'
-                }`}>
-                  {stats.effectiveReportRate}Hz
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  最大{labels.frequency}
-                </span>
-                <span className="font-medium text-sm text-emerald-600 dark:text-emerald-400">
-                  {stats.maxReportRate}Hz
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  最小{labels.frequency}
-                </span>
-                <span className="font-medium text-sm text-orange-600 dark:text-orange-400">
-                  {stats.minReportRate}Hz
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  平均间隔
-                </span>
-                <span className="font-medium text-sm text-teal-600 dark:text-teal-400">
-                  {stats.averageInterval}ms
-                </span>
-              </div>
+            <div className="bg-green-50 dark:bg-green-950/20 p-3 rounded-lg">
+              <p className="text-sm text-green-600 dark:text-green-400 font-medium">峰值{labels.frequency}</p>
+              <p className="text-lg font-bold text-green-700 dark:text-green-300">{stats.maxReportRate}Hz</p>
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
+              <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">稳定性</p>
+              <p className="text-lg font-bold text-blue-700 dark:text-blue-300">{stats.stability}%</p>
+            </div>
+            <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg">
+              <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">抖动</p>
+              <p className="text-lg font-bold text-amber-700 dark:text-amber-300">{stats.jitter}ms</p>
             </div>
           </div>
-          <div className="space-y-3">
-            <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
-              稳定性指标
+          
+          <div className="grid grid-cols-1 gap-3">
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-sm text-muted-foreground">有效{labels.frequency}</span>
+              <span className="text-base font-semibold text-indigo-600 dark:text-indigo-400">{stats.effectiveReportRate}Hz</span>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  抖动
-                </span>
-                <span className="font-medium text-sm text-amber-600 dark:text-amber-400">
-                  {stats.jitter}ms
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  稳定性评分
-                </span>
-                <span className={`font-medium text-sm ${getScoreColor(stats.stability)}`}>
-                  {stats.stability}%
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  时序精度
-                </span>
-                <span className="font-medium text-sm text-cyan-600 dark:text-cyan-400">
-                  {stats.temporalPrecision}%
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  {labels.events}总数
-                </span>
-                <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
-                  {stats.totalEvents}
-                </span>
-              </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-sm text-muted-foreground">信号质量</span>
+              <span className="text-base font-semibold text-cyan-600 dark:text-cyan-400">{stats.signalQuality}%</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-sm text-muted-foreground">{labels.events}总数</span>
+              <span className="text-base font-semibold text-slate-700 dark:text-slate-300">{stats.totalEvents}</span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-sm text-muted-foreground">测试时长</span>
+              <span className="text-base font-semibold text-slate-700 dark:text-slate-300">{formatDuration(stats.testDuration)}</span>
             </div>
           </div>
         </div>
       </div>
     </div>
   )
-} 
+})
+
+ReportRateStatsDisplay.displayName = 'ReportRateStatsDisplay' 
