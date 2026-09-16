@@ -30,7 +30,7 @@ interface ReportRateTestSectionProps {
   progress?: number
   remainingTime?: number
   onClick?: () => void
-  onMouseMove?: (e: React.MouseEvent) => void
+  onMouseMove?: (e: React.PointerEvent) => void
   onRestart: () => void
   events: MouseMoveEvent[]
   stats: {

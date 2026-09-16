@@ -213,16 +213,32 @@ export default function Home() {
   }, [testStates.mouseMoveTestReady, mouseProgressTimer, createProgressTimer])
 
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.PointerEvent) => {
       if (!isMouseMoveTesting) return
 
-      const newEvent: MouseMoveEvent = {
-        timestamp: performance.now(),
-        x: e.clientX,
-        y: e.clientY
-      }
+      // 浏览器把多次硬件上报合并成一次派发，直接计数只能测到屏幕刷新率；
+      // 通过 getCoalescedEvents 还原原始上报点，才能测出鼠标真实回报率
+      const coalesced =
+        typeof e.nativeEvent.getCoalescedEvents === 'function'
+          ? e.nativeEvent.getCoalescedEvents()
+          : []
 
-      setMouseMoveEvents((prev) => [...prev, newEvent])
+      const batch: MouseMoveEvent[] =
+        coalesced.length > 0
+          ? coalesced.map((c) => ({
+              timestamp: c.timeStamp,
+              x: c.clientX,
+              y: c.clientY
+            }))
+          : [
+              {
+                timestamp: performance.now(),
+                x: e.clientX,
+                y: e.clientY
+              }
+            ]
+
+      setMouseMoveEvents((prev) => [...prev, ...batch])
     },
     [isMouseMoveTesting]
   )

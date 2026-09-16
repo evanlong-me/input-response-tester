@@ -15,7 +15,7 @@ interface TestAreaProps {
   totalEvents?: number
   remainingTime?: number
   onClick?: () => void
-  onMouseMove?: (e: React.MouseEvent) => void
+  onMouseMove?: (e: React.PointerEvent) => void
   tabIndex?: number
   className?: string
 }
@@ -260,7 +260,7 @@ export const TestArea = React.memo(({
         ${className}
       `}
       onClick={onClick}
-      onMouseMove={onMouseMove}
+      onPointerMove={onMouseMove}
       tabIndex={tabIndex}
       onContextMenu={(e) => e.preventDefault()}
       onDragStart={(e) => e.preventDefault()}

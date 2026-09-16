@@ -139,11 +139,13 @@ export const DeviceChart = React.memo(({ testResults, deviceType }: DeviceChartP
 DeviceChart.displayName = 'DeviceChart'
 
 export const ReportRateChart = React.memo(({ events, deviceType }: ReportRateChartProps) => {
-  // 计算回报率数据
+  // 计算回报率数据（高回报率下事件量可达数万，按步长降采样保护渲染性能）
   const chartData = useMemo(() => {
     const data = []
     if (events.length > 1) {
-      for (let i = 1; i < events.length; i++) {
+      const maxPoints = 1000
+      const stride = Math.max(1, Math.ceil((events.length - 1) / maxPoints))
+      for (let i = 1; i < events.length; i += stride) {
         const interval = events[i].timestamp - events[i - 1].timestamp
         const reportRate = interval > 0 ? preciseRound(1000 / interval, PRECISION.FREQUENCY) : 0
         data.push({
