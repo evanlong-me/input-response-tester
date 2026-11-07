@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://input-response-tester.vercel.app"),
   title: {
     default: "HID设备性能基准测试 | 键盘鼠标延迟回报率测试工具",
     template: "%s | HID设备性能基准测试"
