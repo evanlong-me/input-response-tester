@@ -2,11 +2,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://input-response-tester.vercel.app/</loc>
+    <loc>https://evanlong-me.github.io/input-response-tester/</loc>
     <lastmod>2024-01-01T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://input-response-tester.vercel.app/" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://input-response-tester.vercel.app/en" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://evanlong-me.github.io/input-response-tester/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://evanlong-me.github.io/input-response-tester/en" />
   </url>
 </urlset> 

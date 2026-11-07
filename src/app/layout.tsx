@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://input-response-tester.vercel.app"),
+  metadataBase: new URL("https://evanlong-me.github.io/input-response-tester"),
   title: {
     default: "HID设备性能基准测试 | 键盘鼠标延迟回报率测试工具",
     template: "%s | HID设备性能基准测试"
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "zh_CN",
-    url: "https://input-response-tester.vercel.app",
+    url: "https://evanlong-me.github.io/input-response-tester",
     siteName: "HID设备性能基准测试",
     title: "HID设备性能基准测试 - 键盘鼠标延迟回报率测试工具",
     description: "数据分析级键盘鼠标性能测试工具，精确测量输入延迟和回报率，为游戏玩家和数据分析师提供设备性能评估。",
@@ -76,10 +76,10 @@ export const metadata: Metadata = {
     creator: "@HIDTester",
   },
   alternates: {
-    canonical: "https://input-response-tester.vercel.app",
+    canonical: "https://evanlong-me.github.io/input-response-tester",
     languages: {
-      "zh-CN": "https://input-response-tester.vercel.app",
-      "en": "https://input-response-tester.vercel.app/en",
+      "zh-CN": "https://evanlong-me.github.io/input-response-tester",
+      "en": "https://evanlong-me.github.io/input-response-tester/en",
     },
   },
   category: "Technology",
@@ -129,7 +129,7 @@ export default function RootLayout({
               "@type": "SoftwareApplication",
               "name": "HID设备性能基准测试",
               "description": "数据分析级键盘鼠标性能测试工具，精确测量输入延迟和回报率",
-              "url": "https://input-response-tester.vercel.app",
+              "url": "https://evanlong-me.github.io/input-response-tester",
               "applicationCategory": "UtilitiesApplication",
               "operatingSystem": "Web Browser",
               "offers": {
