@@ -6,8 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "deploy": "wrangler deploy"
+    "lint": "next lint"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.7",
@@ -30,8 +29,7 @@
       "@tailwindcss/oxide",
       "esbuild",
       "sharp",
-      "unrs-resolver",
-      "workerd"
+      "unrs-resolver"
     ]
   },
   "devDependencies": {
@@ -44,7 +42,6 @@
     "eslint-config-next": "15.3.3",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.4",
-    "typescript": "^5",
-    "wrangler": "^4.158.0"
+    "typescript": "^5"
   }
 }

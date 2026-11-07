@@ -1,8 +1,15 @@
 import type { NextConfig } from "next";
 
+// 只在 GitHub Actions 构建时设置。Vercel 不提供该变量，站点仍从域名根路径发布。
+const basePath =
+  process.env.GITHUB_PAGES === "true" ? "/input-response-tester" : "";
+
 const nextConfig: NextConfig = {
-  // 纯客户端页面，导出静态文件后由 Workers Static Assets 托管
   output: "export",
+  ...(basePath ? { basePath } : {}),
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
+  },
 };
 
 export default nextConfig;
